@@ -4,19 +4,18 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderDetail;
 use App\Models\MenuItem;
 
 class OrderService
 {
-    public function createOrder($userId, $items)
+    public function createOrder($userId, $items, $orderData = [])
     {
         if (empty($items)) {
             throw new \Exception('Order must contain at least one item');
         }
 
-        $totalAmount = 0;
-
-        // Validate items and calculate total
+        // Validate items
         foreach ($items as $item) {
             $menuItem = MenuItem::find($item['menu_item_id']);
             if (!$menuItem) {
@@ -26,25 +25,37 @@ class OrderService
             if (!$menuItem->availability_status) {
                 throw new \Exception("Menu item {$menuItem->name} is not available");
             }
-
-            $totalAmount += $menuItem->price * $item['quantity'];
         }
 
-        // Create order
+        // Create order with payment info
         $order = Order::create([
             'user_id' => $userId,
-            'total_amount' => $totalAmount,
-            'status' => 'pending',
+            'subtotal' => $orderData['subtotal'] ?? 0,
+            'tax_amount' => $orderData['tax_amount'] ?? 0,
+            'total_amount' => $orderData['total_amount'] ?? 0,
+            'status' => $orderData['status'] ?? 'pending',
+            'payment_method' => $orderData['payment_method'] ?? 'cash',
+            'payment_status' => $orderData['payment_status'] ?? 'pending',
         ]);
 
         // Add order items
         foreach ($items as $item) {
-            $menuItem = MenuItem::find($item['menu_item_id']);
             OrderItem::create([
                 'order_id' => $order->id,
                 'menu_item_id' => $item['menu_item_id'],
                 'quantity' => $item['quantity'],
-                'price' => $menuItem->price,
+                'price' => $item['price'] ?? MenuItem::find($item['menu_item_id'])->price,
+            ]);
+        }
+
+        // Create order detail if provided
+        if (!empty($orderData['order_detail'])) {
+            OrderDetail::create([
+                'order_id' => $order->id,
+                'delivery_type' => $orderData['order_detail']['delivery_type'] ?? 'delivery',
+                'order_date' => $orderData['order_detail']['order_date'] ?? now()->toDateString(),
+                'order_time' => $orderData['order_detail']['order_time'] ?? now()->toTimeString(),
+                'delivery_address' => $orderData['order_detail']['delivery_address'] ?? null,
             ]);
         }
 
@@ -53,7 +64,7 @@ class OrderService
 
     public function getOrderById($orderId)
     {
-        $order = Order::with('items.menuItem')->find($orderId);
+        $order = Order::with('items.menuItem', 'details')->find($orderId);
         if (!$order) {
             throw new \Exception('Order not found');
         }
@@ -63,19 +74,19 @@ class OrderService
     public function getUserOrders($userId)
     {
         return Order::where('user_id', $userId)
-            ->with('items.menuItem')
+            ->with('items.menuItem', 'details')
             ->orderByDesc('created_at')
             ->get();
     }
 
     public function getAllOrders()
     {
-        return Order::with('items.menuItem', 'user')->orderByDesc('created_at')->get();
+        return Order::with('items.menuItem', 'user', 'details')->orderByDesc('created_at')->get();
     }
 
     public function updateOrderStatus($orderId, $status)
     {
-        $validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
+        $validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'];
         if (!in_array($status, $validStatuses)) {
             throw new \Exception('Invalid order status');
         }
@@ -86,6 +97,39 @@ class OrderService
         }
 
         $order->update(['status' => $status]);
+        return $order;
+    }
+
+    public function updateOrder($orderId, $data)
+    {
+        $order = Order::find($orderId);
+        if (!$order) {
+            throw new \Exception('Order not found');
+        }
+
+        $updateData = [];
+        
+        if (isset($data['status'])) {
+            $validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'];
+            if (!in_array($data['status'], $validStatuses)) {
+                throw new \Exception('Invalid order status');
+            }
+            $updateData['status'] = $data['status'];
+        }
+
+        if (isset($data['payment_status'])) {
+            $validPaymentStatuses = ['pending', 'paid', 'failed', 'refunded'];
+            if (!in_array($data['payment_status'], $validPaymentStatuses)) {
+                throw new \Exception('Invalid payment status');
+            }
+            $updateData['payment_status'] = $data['payment_status'];
+        }
+
+        if (empty($updateData)) {
+            throw new \Exception('No valid fields to update');
+        }
+
+        $order->update($updateData);
         return $order;
     }
 }

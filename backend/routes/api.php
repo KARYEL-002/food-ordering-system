@@ -4,12 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\UserController;
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/menu-items', [MenuItemController::class, 'index']);
 Route::get('/menu-items/{id}', [MenuItemController::class, 'show']);
+
+// File serving route
+Route::get('/files/{path}', 'App\Http\Controllers\Api\StorageController@serveFile')
+    ->where('path', '.*');
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -31,7 +36,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Order management
         Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/revenue/today', [OrderController::class, 'getTodayRevenue']);
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+
+        // User management
+        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
+        Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
+        
+        // Roles
+        Route::get('/roles', [UserController::class, 'getRoles']);
     });
 });
 

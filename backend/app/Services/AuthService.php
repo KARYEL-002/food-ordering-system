@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthService
 {
-    public function register($name, $email, $password, $phoneNumber, $roleName = 'Customer')
+    public function register($name, $email, $password, $phoneNumber = null, $roleName = 'Customer')
     {
         // Check if user exists
         if (User::where('email', $email)->exists()) {
@@ -34,26 +34,40 @@ class AuthService
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
-            'id' => $user->id,
-            'email' => $user->email,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+                'role' => $role->name,
+            ],
             'token' => $token,
         ];
     }
 
     public function login($email, $password)
     {
-        if (!Auth::attempt(['email' => $email, 'password' => $password])) {
+        // Try to find the user first
+        $user = User::where('email', $email)->first();
+        
+        if (!$user || !Hash::check($password, $user->password)) {
             throw new \Exception('Invalid credentials');
         }
 
-        $user = User::with('role')->where('email', $email)->first();
+        // Load the role relationship
+        $user->load('role');
+        
+        // Create API token for the user
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role->name,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+                'role' => $user->role->name,
+            ],
             'token' => $token,
         ];
     }

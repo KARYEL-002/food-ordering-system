@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\AuthService;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -22,7 +23,7 @@ class AuthController extends Controller
                 'name' => 'required|string',
                 'email' => 'required|email',
                 'password' => 'required|string|min:6',
-                'phone' => 'required|string',
+                'phone' => 'nullable|string',
                 'role' => 'nullable|string',
             ]);
 
@@ -65,11 +66,22 @@ class AuthController extends Controller
     public function getCurrentUser(Request $request)
     {
         try {
-            $user = $this->authService->getUserById($request->user()->id);
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['error' => 'User not authenticated'], 401);
+            }
+            
+            $userData = User::with('role')->find($user->id);
 
             return response()->json([
                 'message' => 'User fetched successfully',
-                'data' => $user,
+                'data' => [
+                    'id' => $userData->id,
+                    'name' => $userData->name,
+                    'email' => $userData->email,
+                    'phone_number' => $userData->phone_number,
+                    'role' => $userData->role->name,
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 404);

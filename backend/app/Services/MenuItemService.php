@@ -3,10 +3,29 @@
 namespace App\Services;
 
 use App\Models\MenuItem;
+use Illuminate\Support\Facades\Storage;
 
 class MenuItemService
 {
-    public function createMenuItem($name, $description, $price, $imageUrl)
+    public function storeImage($file)
+    {
+        if (!$file) {
+            return null;
+        }
+
+        try {
+            // Store the file in storage/app/public/menu-items
+            $path = $file->store('menu-items', 'public');
+            
+            // Return API path that we can serve through StorageController
+            return '/api/files/menu-items/' . basename($path);
+        } catch (\Exception $e) {
+            \Log::error('Image upload failed: ' . $e->getMessage());
+            throw new \Exception('Failed to upload image: ' . $e->getMessage());
+        }
+    }
+
+    public function createMenuItem($name, $description, $price, $imageUrl, $category = null, $availabilityStatus = true)
     {
         if (!$name || !$price) {
             throw new \Exception('Name and price are required');
@@ -17,6 +36,8 @@ class MenuItemService
             'description' => $description,
             'price' => $price,
             'image_url' => $imageUrl,
+            'category' => $category,
+            'availability_status' => $availabilityStatus,
         ]);
     }
 
@@ -34,7 +55,7 @@ class MenuItemService
         return $item;
     }
 
-    public function updateMenuItem($id, $name, $description, $price, $imageUrl, $availabilityStatus)
+    public function updateMenuItem($id, $name, $description, $price, $imageUrl, $category = null, $availabilityStatus = true)
     {
         $item = MenuItem::find($id);
         if (!$item) {
@@ -46,6 +67,7 @@ class MenuItemService
             'description' => $description,
             'price' => $price,
             'image_url' => $imageUrl,
+            'category' => $category,
             'availability_status' => $availabilityStatus,
         ]);
 

@@ -47,24 +47,45 @@ class MenuItemController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string',
+                'name' => 'required|string|max:255',
+                'category' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
-                'price' => 'required|numeric',
-                'image_url' => 'nullable|string',
+                'price' => 'required|numeric|min:0',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'availability_status' => 'nullable|in:0,1,true,false',
             ]);
+
+            $imageUrl = null;
+            if ($request->hasFile('image')) {
+                $imageUrl = $this->menuItemService->storeImage($request->file('image'));
+            }
+
+            // Convert to actual boolean
+            $availabilityStatus = true;
+            if (isset($validated['availability_status'])) {
+                $availabilityStatus = filter_var($validated['availability_status'], FILTER_VALIDATE_BOOLEAN);
+            }
 
             $item = $this->menuItemService->createMenuItem(
                 $validated['name'],
                 $validated['description'] ?? null,
                 $validated['price'],
-                $validated['image_url'] ?? null
+                $imageUrl,
+                $validated['category'] ?? null,
+                $availabilityStatus
             );
 
             return response()->json([
                 'message' => 'Menu item created successfully',
                 'data' => $item,
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => $e->errors()
+            ], 400);
         } catch (\Exception $e) {
+            \Log::error('Menu item creation error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -73,27 +94,53 @@ class MenuItemController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string',
+                'name' => 'required|string|max:255',
+                'category' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
-                'price' => 'required|numeric',
+                'price' => 'required|numeric|min:0',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'image_url' => 'nullable|string',
-                'availability_status' => 'nullable|boolean',
+                'availability_status' => 'nullable|in:0,1,true,false',
             ]);
 
-            $item = $this->menuItemService->updateMenuItem(
+            $item = $this->menuItemService->getMenuItemById($id);
+            $imageUrl = $item->image_url; // Keep existing image by default
+
+            // Check if new image file is uploaded
+            if ($request->hasFile('image')) {
+                $imageUrl = $this->menuItemService->storeImage($request->file('image'));
+            } elseif (isset($validated['image_url'])) {
+                // Use provided image URL if specified
+                $imageUrl = $validated['image_url'];
+            }
+
+            // Convert to actual boolean
+            $availabilityStatus = $item->availability_status; // Keep existing status by default
+            if (isset($validated['availability_status'])) {
+                $availabilityStatus = filter_var($validated['availability_status'], FILTER_VALIDATE_BOOLEAN);
+            }
+
+            $updatedItem = $this->menuItemService->updateMenuItem(
                 $id,
                 $validated['name'],
-                $validated['description'] ?? null,
+                $validated['description'] ?? $item->description,
                 $validated['price'],
-                $validated['image_url'] ?? null,
-                $validated['availability_status'] ?? true
+                $imageUrl,
+                $validated['category'] ?? $item->category,
+                $availabilityStatus
             );
 
             return response()->json([
                 'message' => 'Menu item updated successfully',
-                'data' => $item,
+                'data' => $updatedItem,
             ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => $e->errors()
+            ], 400);
         } catch (\Exception $e) {
+            \Log::error('Menu item update error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }

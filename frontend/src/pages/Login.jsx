@@ -5,12 +5,18 @@ import toast from 'react-hot-toast';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already logged in
+  if (isAuthenticated && user) {
+    navigate('/');
+    return null;
+  }
 
   const handleChange = (e) => {
     setFormData({
@@ -24,13 +30,23 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
-      toast.success('Login successful!');
-      navigate('/');
+      const userData = await login(formData.email, formData.password);
+      
+      // Verify login was successful
+      if (userData && userData.id) {
+        toast.success(`Welcome back, ${userData.name}!`);
+        
+        // Small delay to ensure state is updated before navigation
+        setTimeout(() => {
+          navigate('/');
+          window.location.reload();
+        }, 500);
+      } else {
+        throw new Error('Login verification failed');
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error.response?.data?.error || error.response?.data?.message || 'Login failed. Please check your credentials.');
-    } finally {
       setLoading(false);
     }
   };

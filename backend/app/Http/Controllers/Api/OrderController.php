@@ -22,14 +22,28 @@ class OrderController extends Controller
                 'items' => 'required|array',
                 'items.*.menu_item_id' => 'required|integer',
                 'items.*.quantity' => 'required|integer|min:1',
+                'items.*.price' => 'required|numeric',
+                'subtotal' => 'required|numeric',
+                'tax_amount' => 'required|numeric',
+                'total_amount' => 'required|numeric',
+                'payment_method' => 'required|string',
+                'status' => 'nullable|string',
+                'payment_status' => 'nullable|string',
+                'order_detail' => 'nullable|array',
+                'order_detail.delivery_type' => 'nullable|string',
+                'order_detail.order_date' => 'nullable|date',
+                'order_detail.order_time' => 'nullable|date_format:H:i',
+                'order_detail.delivery_address' => 'nullable|string',
             ]);
 
-            $order = $this->orderService->createOrder($request->user()->id, $validated['items']);
+            $order = $this->orderService->createOrder($request->user()->id, $validated['items'], $validated);
 
             return response()->json([
                 'message' => 'Order created successfully',
-                'data' => $order->load('items.menuItem'),
+                'data' => $order->load('items.menuItem', 'details'),
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 400);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
@@ -86,14 +100,52 @@ class OrderController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|string',
+                'status' => 'nullable|string',
+                'payment_status' => 'nullable|string',
             ]);
 
-            $order = $this->orderService->updateOrderStatus($id, $validated['status']);
+            $order = $this->orderService->updateOrder($id, $validated);
 
             return response()->json([
-                'message' => 'Order status updated successfully',
+                'message' => 'Order updated successfully',
                 'data' => $order,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function getTodayRevenue()
+    {
+        try {
+            $today = now()->startOfDay();
+            $tomorrow = now()->endOfDay();
+
+            $revenue = \App\Models\Order::whereBetween('created_at', [$today, $tomorrow])
+                ->sum('total_amount');
+
+            return response()->json([
+                'message' => 'Today revenue retrieved successfully',
+                'data' => [
+                    'total' => (float) $revenue,
+                    'date' => now()->format('Y-m-d'),
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $order = \App\Models\Order::findOrFail($id);
+            $order->items()->delete();
+            $order->details()->delete();
+            $order->delete();
+
+            return response()->json([
+                'message' => 'Order deleted successfully',
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);

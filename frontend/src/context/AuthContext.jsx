@@ -8,12 +8,28 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (storedUser && token) {
+        try {
+          // Verify token is still valid by making a request with it
+          const response = await api.get('/auth/me');
+          const userData = response.data.data || response.data;
+          setUser(userData);
+        } catch (error) {
+          // Token is invalid, clear storage
+          console.log('Token invalid, clearing auth');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+    
+    initializeAuth();
   }, []);
 
   const login = async (email, password) => {
@@ -21,10 +37,14 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/auth/login', { email, password });
       console.log('Login response:', response.data);
       
-      // Handle different response structures
       const data = response.data.data || response.data;
       const token = data.token || data.access_token;
-      const userData = data.user || data;
+      const userData = data.user || {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+      };
       
       if (!token) {
         throw new Error('No token received from server');
@@ -42,7 +62,15 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     const response = await api.post('/auth/register', userData);
-    const { token, ...user } = response.data.data; // Extract from data property
+    const data = response.data.data || response.data;
+    const token = data.token || data.access_token;
+    const user = data.user || {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      role: data.role,
+    };
+    
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     setUser(user);

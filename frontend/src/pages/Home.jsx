@@ -7,6 +7,26 @@ import adobo from '../assets/images/adobo.png';
 import bulalo from '../assets/images/sinigang.png';
 import kare from '../assets/images/karekare.png';
 
+// Small image component with React fallback (avoids direct DOM manipulation)
+const FallbackImage = ({ src, alt, className }) => {
+  const [failed, setFailed] = useState(false);
+  const hasSrc = typeof src === 'string' && src.trim() !== '';
+  if (!hasSrc || failed) {
+    return (
+      <div className={(className ? className + ' ' : '') + 'w-full h-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-6xl'}>
+        <span>🍲</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setFailed(true)}
+    />
+  );
+};
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
   const [featuredItems, setFeaturedItems] = useState([]);
@@ -21,16 +41,13 @@ const Home = () => {
       const response = await api.get('/menu-items');
       // Backend returns { data: [...], message: "..." }
       const items = response.data.data || response.data;
-      // Add placeholder images to items
+      // Add placeholder images to items and guard against empty/null image values
+      const placeholderImages = [bulalo, kare, adobo];
       const itemsWithImages = items.slice(0, 3).map((item, index) => {
-        const placeholderImages = [
-          bulalo,
-          kare,
-          adobo
-        ];
+        const imageFromApi = item && item.image_url ? String(item.image_url).trim() : '';
         return {
           ...item,
-          image_url: item.image_url || placeholderImages[index], // Use database image if exists, otherwise placeholder
+          image_url: imageFromApi ? imageFromApi : placeholderImages[index], // Use database image if non-empty, otherwise placeholder
         };
       });
       setFeaturedItems(itemsWithImages);
@@ -50,37 +67,36 @@ const Home = () => {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#FFFDF1'}}>
       {/* Hero Section */}
-      <div className="relative overflow-hidden" style={{backgroundColor: '#FFFDF1'}}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="relative flex items-center justify-center">
-            {/* Background Rounded Box */}
-            <div className="absolute left-0 right-0 mx-auto w-full max-w-4xl h-72 bg-gradient-to-r from-orange-200 to-orange-300 rounded-[8rem] shadow-lg"></div>
-            
-            {/* Content Container */}
-            <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center w-full max-w-5xl">
-              {/* Left Image */}
-              <div className="relative flex items-center justify-start pl-8 z-10">
-                <div 
-                  className="w-72 h-72 rounded-full overflow-hidden"
-                  style={{boxShadow: '15px 15px 30px rgba(0, 0, 0, 0.2)'}}
-                >
-                  <img
-                    src={adobo}
-                    alt="Delicious adobo"
-                    className="w-full h-full object-cover object-center scale-110"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center"><span class="text-9xl">🍜</span></div>';
-                    }}
-                  />
-                </div>
-              </div>
+      <div style={{backgroundColor: '#FFFDF1'}} className="py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Left: Text Content */}
+            <div className="space-y-4 animate-fade-in-up">
+              <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-amber-950" style={{fontFamily: 'Montserrat, sans-serif'}}>
+                Enjoy <span style={{color: '#f4c496'}}>Delicious<br/>Food</span> In Your<br/>Healthy Life
+              </h1>
+              <p className="text-[#704214] text-base max-w-md leading-relaxed">
+                Enjoy a wide selection of delicious Filipino dishes made with fresh ingredients. Order now and experience authentic flavors delivered right to your door.
+              </p>
+              <Link 
+                to="/menu"
+                className="inline-block font-semibold px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                style={{backgroundColor: '#f4c496', color: '#704214', fontFamily: 'Montserrat, sans-serif'}}
+                onMouseOver={e => { e.target.style.backgroundColor = '#ffce99'; }}
+                onMouseOut={e => { e.target.style.backgroundColor = '#f4c496'; }}
+              >
+                Order Now →
+              </Link>
+            </div>
 
-              {/* Right Content - FoodHub Title */}
-              <div className="relative flex items-center justify-center z-10">
-                <h1 className="text-xs font-bold text-amber-900" style={{fontFamily: 'Montserrat, sans-serif'}}>
-                  FoodHub
-                </h1>
+            {/* Right: Food Image */}
+            <div className="relative animate-fade-in-up" style={{animationDelay: '200ms'}}>
+              <div className="relative">
+                <FallbackImage
+                  src={adobo}
+                  alt="Delicious Filipino Food"
+                  className="w-full h-auto max-w-md mx-auto drop-shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                />
               </div>
             </div>
           </div>
@@ -99,33 +115,27 @@ const Home = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-6xl mx-auto">
               {featuredItems.map((item, index) => (
                 <div 
                   key={item.id} 
                   className="group animate-fade-in-up"
                   style={{animationDelay: `${index * 150}ms`}}
                 >
-                  <div className="relative pt-20 transform transition-all duration-300 hover:-translate-y-2">
+                  <div className="relative pt-28 transform transition-all duration-300 hover:-translate-y-2">
                     {/* Food Image - positioned to overlap the card */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-44 z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                       <div className="w-full h-full rounded-full overflow-hidden">
-                        {item.image_url ? (
-                          <img
+                        <FallbackImage
                             src={item.image_url}
                             alt={item.name}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105 p-2"
                           />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-                            <span className="text-6xl">🍽️</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                     
                     {/* Card background */}
-                    <div style={{backgroundColor: '#ffce99'}} className="rounded-[2rem] pt-24 pb-8 px-8 transition-all duration-300 hover:shadow-2xl">
+                    <div style={{backgroundColor: '#ffce99'}} className="rounded-[2.5rem] pt-36 pb-10 px-10 min-h-[420px] transition-all duration-300 hover:shadow-2xl">
                       {/* Description text for first card only */}
                       {item.id === 1 && (
                         <div className="mb-6">

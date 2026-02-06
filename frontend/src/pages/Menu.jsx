@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import MenuItemCard from '../components/MenuItemCard';
-import Cart from '../components/Cart';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { MdGridView, MdRamenDining, MdFastfood, MdLunchDining, MdRiceBowl, MdLocalPizza, MdIcecream, MdLocalDrink, MdSearch, MdMenu } from 'react-icons/md';
 
 const Menu = () => {
+  const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState([]);
-  const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,7 +34,40 @@ const Menu = () => {
     }
   };
 
+  // Cart state (local) — used for quick add-to-cart in this page
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const addToCart = (item) => {
+    try {
+      const existing = cart.find(ci => ci.id === item.id);
+      let newCart = [];
+      if (existing) {
+        newCart = cart.map(ci => ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci);
+      } else {
+        newCart = [...cart, { ...item, quantity: 1 }];
+      }
+      setCart(newCart);
+      localStorage.setItem('cart', JSON.stringify(newCart));
+      toast.success(`${item.name} added to cart`);
+    } catch (e) {
+      console.error('addToCart error', e);
+      toast.error('Failed to add to cart');
+    }
+  };
+
   const categories = ['all', ...new Set(menuItems.map(item => item.category))];
+
+  const getCategoryCount = (category) => {
+    if (category === 'all') return menuItems.length;
+    return menuItems.filter(item => item.category === category).length;
+  };
 
   const filteredItems = selectedCategory === 'all'
     ? menuItems.filter(item => 
@@ -64,41 +97,7 @@ const Menu = () => {
     }
   });
 
-  const getCategoryCount = (category) => {
-    if (category === 'all') return menuItems.length;
-    return menuItems.filter(item => item.category === category).length;
-  };
-
-  const addToCart = (item) => {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
-    if (existingItem) {
-      setCart(cart.map(cartItem =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      ));
-    } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
-    }
-    toast.success(`${item.name} added to cart`);
-  };
-
-  const updateQuantity = (itemId, newQuantity) => {
-    if (newQuantity <= 0) {
-      removeFromCart(itemId);
-      return;
-    }
-    setCart(cart.map(item =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    ));
-  };
-
-  const removeFromCart = (itemId) => {
-    setCart(cart.filter(item => item.id !== itemId));
-    toast.success('Item removed from cart');
-  };
-
-  const handleCheckout = async () => {
+  const handleCheckout = async (deliveryType, specialInstructions) => {
     try {
       const orderData = {
         items: cart.map(item => ({
@@ -106,6 +105,8 @@ const Menu = () => {
           quantity: item.quantity,
           price: item.price,
         })),
+        delivery_type: deliveryType,
+        special_instructions: specialInstructions || null,
       };
 
       await api.post('/orders', orderData);

@@ -12,8 +12,14 @@ const Register = () => {
     phone: '',
   });
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  if (isAuthenticated && user) {
+    navigate('/');
+    return null;
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,9 +35,20 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await register(formData);
-      toast.success('Registration successful!');
-      navigate('/menu');
+      const userData = await register(formData);
+      
+      // Verify registration was successful
+      if (userData && userData.id) {
+        toast.success(`Welcome, ${userData.name}! Account created successfully!`);
+        
+        // Small delay to ensure state is updated before navigation and reload
+        setTimeout(() => {
+          navigate('/menu');
+          window.location.reload();
+        }, 500);
+      } else {
+        throw new Error('Registration verification failed');
+      }
     } catch (error) {
       // Show backend-provided error message when available
       const backendMessage =
@@ -39,7 +56,6 @@ const Register = () => {
         error.response?.data?.error ||
         error.message;
       toast.error(backendMessage || 'Registration failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -94,13 +110,12 @@ const Register = () => {
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Phone
+                Phone (Optional)
               </label>
               <input
                 id="phone"
                 name="phone"
                 type="tel"
-                required
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-800 focus:border-transparent outline-none transition-all"

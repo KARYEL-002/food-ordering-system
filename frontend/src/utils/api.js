@@ -6,7 +6,6 @@ const baseURL = import.meta.env.VITE_API_URL || '/api';
 const api = axios.create({
   baseURL,
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
   withCredentials: true, // Important for Sanctum CSRF protection
@@ -18,6 +17,10 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // Only set Content-Type to application/json if not FormData
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json';
     }
     return config;
   },
