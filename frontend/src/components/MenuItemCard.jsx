@@ -85,32 +85,31 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit = () => {}, onDelete 
                     <span className="relative z-10">Add to Cart</span>
                   </button>
                 ) : (
-                  // Default view with price and + button
+                  // Default view with price and + button OR unavailable badge
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs sm:text-sm font-semibold text-gray-900" style={{fontFamily: 'Montserrat, sans-serif'}}>
                       {formatCurrency(item.price)}
                     </span>
-                    <button
-                      onClick={() => {
-                        if (isAdmin) {
-                          toast.error('Admins are not allowed to add items to cart');
-                          return;
-                        }
-                        setShowAddToCart(true);
-                      }}
-                      disabled={!item.availability_status}
-                      className={`relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 transform overflow-hidden flex-shrink-0 ${
-                        item.availability_status
-                          ? 'bg-white shadow-md hover:shadow-lg hover:scale-110 active:scale-95'
-                          : 'bg-gray-300 cursor-not-allowed'
-                      }`}
-                    >
-                      {/* Subtle hover background slide */}
-                      {item.availability_status && (
+                    {item.availability_status ? (
+                      <button
+                        onClick={() => {
+                          if (isAdmin) {
+                            toast.error('Admins are not allowed to add items to cart');
+                            return;
+                          }
+                          setShowAddToCart(true);
+                        }}
+                        className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 transform overflow-hidden flex-shrink-0 bg-white shadow-md hover:shadow-lg hover:scale-110 active:scale-95"
+                      >
+                        {/* Subtle hover background slide */}
                         <div className="absolute inset-0 bg-gray-100 transform translate-x-full group-hover:-translate-x-full transition-transform duration-300"></div>
-                      )}
-                      <span className="relative z-10 text-base sm:text-lg font-light text-gray-600">+</span>
-                    </button>
+                        <span className="relative z-10 text-base sm:text-lg font-light text-gray-600">+</span>
+                      </button>
+                    ) : (
+                      <div className="px-3 py-1 sm:px-4 sm:py-2 rounded-full bg-red-500 text-white text-xs sm:text-sm font-bold flex-shrink-0" style={{fontFamily: 'Montserrat, sans-serif'}}>
+                        Unavailable
+                      </div>
+                    )}
                   </div>
                 )}
               </>

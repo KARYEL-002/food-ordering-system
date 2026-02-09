@@ -62,11 +62,22 @@ const AdminMenu = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price), // Convert to number
+        category: formData.category,
+        image_url: formData.image_url,
+        availability_status: formData.is_available ? '1' : '0' // Convert to string '1' or '0'
+      };
+      
+      console.log('Sending payload:', payload); // Debug log
+      
       if (editingItem) {
-        await api.put(`/menu-items/${editingItem.id}`, formData);
+        await api.put(`/menu-items/${editingItem.id}`, payload);
         toast.success('Menu item updated');
       } else {
-        await api.post('/menu-items', formData);
+        await api.post('/menu-items', payload);
         toast.success('Menu item created');
       }
       setShowModal(false);
@@ -81,7 +92,11 @@ const AdminMenu = () => {
       });
       fetchMenuItems();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save menu item');
+      console.error('Error details:', error.response?.data);
+      const errorMsg = error.response?.data?.details 
+        ? Object.entries(error.response.data.details).map(([key, val]) => `${key}: ${val}`).join(', ')
+        : error.response?.data?.message || 'Failed to save menu item';
+      toast.error(errorMsg);
     }
   };
 

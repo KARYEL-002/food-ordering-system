@@ -50,20 +50,30 @@ const Menu = () => {
   const handleEditSubmit = async (updatedItem) => {
     try {
       setIsLoadingAction(true);
-      await api.put(`/menu-items/${updatedItem.id}`, {
+      // Convert status to availability_status string ('1' for available, '0' for unavailable)
+      const availabilityStatus = updatedItem.status === 'available' ? '1' : '0';
+      const payload = {
         name: updatedItem.name,
-        description: updatedItem.description,
-        price: updatedItem.price,
-        category: updatedItem.category,
-        image_url: updatedItem.image_url,
-        is_available: updatedItem.is_available
-      });
+        description: updatedItem.description || '',
+        price: parseFloat(updatedItem.price), // Convert to number
+        category: updatedItem.category || '',
+        image_url: updatedItem.image_url || '',
+        availability_status: availabilityStatus
+      };
+      
+      console.log('Sending payload:', payload); // Debug log
+      
+      await api.put(`/menu-items/${updatedItem.id}`, payload);
       toast.success('Menu item updated successfully');
       setShowEditModal(false);
       setEditingItem(null);
       fetchMenuItems();
     } catch (error) {
-      toast.error('Failed to update menu item');
+      console.error('Edit error details:', error.response?.data);
+      const errorMsg = error.response?.data?.details 
+        ? Object.entries(error.response.data.details).map(([key, val]) => `${key}: ${val}`).join(', ')
+        : 'Failed to update menu item';
+      toast.error(errorMsg);
     } finally {
       setIsLoadingAction(false);
     }

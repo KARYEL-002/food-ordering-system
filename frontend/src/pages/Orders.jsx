@@ -9,6 +9,8 @@ const Orders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     fetchOrders();
@@ -61,6 +63,16 @@ const Orders = () => {
     });
   };
 
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedOrder(null);
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4" style={{backgroundColor: '#FFFDF1', minHeight: '100vh'}}>
       {/* Header */}
@@ -106,7 +118,7 @@ const Orders = () => {
               key={order.id}
               className="bg-white rounded-2xl shadow-sm p-5 border-2 cursor-pointer hover:shadow-md transition"
               style={{borderColor: '#E8DCC8'}}
-              onClick={() => navigate(`/orders/${order.id}`)}
+              onClick={() => handleViewOrder(order)}
             >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
                 {/* Order ID */}
@@ -182,6 +194,100 @@ const Orders = () => {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Order Preview Modal */}
+      {showModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full" style={{fontFamily: 'Montserrat, sans-serif'}}>
+            {/* Header */}
+            <div className="bg-white border-b p-3 flex justify-between items-center" style={{borderColor: '#E8DCC8'}}>
+              <h2 className="text-base font-bold" style={{color: '#704214'}}>Order #{selectedOrder.id}</h2>
+              <button
+                onClick={closeModal}
+                className="text-xl text-gray-500 hover:text-gray-700 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-3 space-y-2">
+              {/* Date and Status */}
+              <div className="flex justify-between items-center text-xs text-gray-600">
+                <span>{formatDate(selectedOrder.created_at)}</span>
+                <span
+                  className="px-2 py-0.5 rounded-full font-semibold text-white text-xs"
+                  style={{backgroundColor: getStatusColor(selectedOrder.status)}}
+                >
+                  {getStatusLabel(selectedOrder.status)}
+                </span>
+              </div>
+
+              {/* Type Badge */}
+              <div>
+                <span
+                  className="inline-block px-2 py-0.5 rounded-full font-semibold text-white text-xs"
+                  style={{backgroundColor: '#704214'}}
+                >
+                  {getDeliveryLabel(selectedOrder.details?.delivery_type || 'delivery')}
+                </span>
+              </div>
+
+              {/* Items List */}
+              {selectedOrder.items && selectedOrder.items.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold mb-1" style={{color: '#704214'}}>Items</p>
+                  <div className="space-y-0.5 bg-gray-50 p-2 rounded border text-xs" style={{borderColor: '#E8DCC8'}}>
+                    {selectedOrder.items.map((item, idx) => (
+                      <div key={idx} className="flex justify-between">
+                        <span style={{color: '#704214'}}>{item.menu_item?.name}</span>
+                        <span className="text-gray-600">x{item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Amount Breakdown */}
+              <div className="border-t pt-2 text-xs space-y-0.5" style={{borderColor: '#E8DCC8'}}>
+                <div className="flex justify-between">
+                  <span style={{color: '#704214'}}>Subtotal:</span>
+                  <span style={{color: '#704214'}}>{formatCurrency(selectedOrder.subtotal || selectedOrder.total_amount)}</span>
+                </div>
+                {selectedOrder.tax_amount && (
+                  <div className="flex justify-between">
+                    <span style={{color: '#704214'}}>Tax:</span>
+                    <span style={{color: '#704214'}}>{formatCurrency(selectedOrder.tax_amount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold border-t pt-1 text-sm" style={{borderColor: '#E8DCC8', color: '#704214'}}>
+                  <span>Total:</span>
+                  <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="text-xs border-t pt-2" style={{borderColor: '#E8DCC8'}}>
+                <span className="capitalize" style={{color: '#704214'}}>{selectedOrder.payment_method || 'N/A'}</span>
+                <span className="ml-2 px-2 py-0.5 rounded-full font-semibold text-white text-xs" style={{backgroundColor: selectedOrder.payment_status === 'paid' ? '#228B22' : '#FFA500'}}>
+                  {selectedOrder.payment_status === 'paid' ? 'Paid' : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-2" style={{borderColor: '#E8DCC8'}}>
+              <button
+                onClick={closeModal}
+                className="w-full py-2 rounded-lg font-bold text-white text-sm transition hover:opacity-90"
+                style={{backgroundColor: '#704214'}}
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

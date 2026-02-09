@@ -4,23 +4,25 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
   const [formData, setFormData] = useState({
     name: '',
     category: '',
+    description: '',
     price: '',
+    image_url: '',
     status: 'available'
   });
 
   useEffect(() => {
     if (item) {
-      // Map availability_status to new status format
+      // Map availability_status (from backend) to status format  
       let status = 'available';
       if (item.availability_status === false) {
         status = 'unavailable';
-      } else if (item.status === 'sold_out') {
-        status = 'sold_out';
       }
       
       setFormData({
         name: item.name || '',
         category: item.category || '',
+        description: item.description || '',
+        image_url: item.image_url || '',
         price: item.price ? parseFloat(item.price).toFixed(2) : '',
         status: status
       });
@@ -112,7 +114,6 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
             >
               <option value="available">Available</option>
               <option value="unavailable">Unavailable</option>
-              <option value="sold_out">Sold Out</option>
             </select>
           </div>
 

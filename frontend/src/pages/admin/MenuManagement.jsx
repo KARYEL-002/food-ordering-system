@@ -80,24 +80,33 @@ const MenuManagement = () => {
     try {
       setIsEditing(true);
       // Map status values to backend fields
-      let availability_status = true;
+      let availability_status = '1'; // '1' for available, '0' for unavailable
       if (updatedItem.status === 'unavailable') {
-        availability_status = false;
+        availability_status = '0';
       }
       
-      await api.put(`/menu-items/${updatedItem.id}`, {
+      const payload = {
         name: updatedItem.name,
-        category: updatedItem.category,
-        price: updatedItem.price,
-        availability_status: availability_status,
-        status: updatedItem.status
-      });
+        category: updatedItem.category || '',
+        description: updatedItem.description || '',
+        price: parseFloat(updatedItem.price), // Convert to number
+        image_url: updatedItem.image_url || '',
+        availability_status: availability_status
+      };
+      
+      console.log('Sending payload:', payload); // Debug log
+      
+      await api.put(`/menu-items/${updatedItem.id}`, payload);
       setMenuItems(menuItems.map(item => item.id === updatedItem.id ? updatedItem : item));
       setEditingItem(null);
       // Hot reload - fetch fresh data
       setTimeout(() => fetchMenuItems(), 300);
     } catch (err) {
-      alert('Failed to update menu item');
+      console.error('Edit error details:', err.response?.data);
+      const errorMsg = err.response?.data?.details 
+        ? Object.entries(err.response.data.details).map(([key, val]) => `${key}: ${val}`).join(', ')
+        : 'Failed to update menu item';
+      alert(errorMsg);
     } finally {
       setIsEditing(false);
     }
@@ -135,8 +144,7 @@ const MenuManagement = () => {
   );
 
   const totalItems = menuItems.length;
-  const availableItems = menuItems.filter(item => item.availability_status && item.status !== 'sold_out').length;
-  const soldOutItems = menuItems.filter(item => item.status === 'sold_out').length;
+  const availableItems = menuItems.filter(item => item.availability_status).length;
   const unavailableItems = menuItems.filter(item => !item.availability_status).length;
 
   return (
@@ -182,10 +190,9 @@ const MenuManagement = () => {
             </h1>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10">
               <StatCard title="TOTAL ITEMS" value={totalItems} />
               <StatCard title="AVAILABLE" value={availableItems} />
-              <StatCard title="SOLD OUT" value={soldOutItems} />
               <StatCard title="UNAVAILABLE" value={unavailableItems} />
             </div>
 
@@ -287,16 +294,11 @@ const MenuManagement = () => {
                         <span
                           className="px-3 py-1 rounded-full text-sm font-bold"
                           style={{
-                            backgroundColor: 
-                              item.status === 'sold_out' ? '#FFB886' :
-                              item.availability_status ? '#C0F4C4' : '#FFB3B3',
-                            color: 
-                              item.status === 'sold_out' ? '#704214' :
-                              item.availability_status ? '#065F46' : '#7C2D12'
+                            backgroundColor: item.availability_status ? '#C0F4C4' : '#FFB3B3',
+                            color: item.availability_status ? '#065F46' : '#7C2D12'
                           }}
                         >
-                          {item.status === 'sold_out' ? 'Sold Out' :
-                           item.availability_status ? 'Available' : 'Unavailable'}
+                          {item.availability_status ? 'Available' : 'Unavailable'}
                         </span>
                       </td>
                       <td className="px-6 py-5 flex gap-2">

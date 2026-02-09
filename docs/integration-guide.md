@@ -8,7 +8,7 @@ This document provides instructions for integrating and running the FoodHub food
 ### Backend (Laravel + Sanctum)
 - **Framework**: Laravel 10+
 - **Authentication**: Laravel Sanctum (Token-based)
-- **Database**: SQLite
+- **Database**: php
 - **Port**: 8000
 
 ### Frontend (React + Vite)
@@ -24,7 +24,7 @@ Before starting, ensure you have:
 - **PHP** 8.1 or higher
 - **Composer** (PHP dependency manager)
 - **Node.js** 18+ and npm
-- **SQLite** support enabled in PHP
+- **mysql** support enabled in PHP
 
 ## Backend Setup
 
@@ -34,23 +34,36 @@ cd backend
 composer install
 ```
 
-### 2. Generate Application Key
+### 2. Environment Configuration
+Create or update the `.env` file:
 ```bash
+cp .env.example .env
+# Then edit .env with your configuration
 php artisan key:generate
 ```
 
 ### 3. Database Setup
 ```bash
-# Create SQLite database
+# Run migrations
 php artisan migrate
 
-# Seed database with initial data (optional)
+# Seed database with initial data (includes admin account)
 php artisan db:seed
 ```
 
-### 4. Start Backend Server
+### 4. Storage Links
 ```bash
+# Create symbolic link for image uploads
+php artisan storage:link
+```
+
+### 5. Start Backend Server
+```bash
+# Development server
 php artisan serve
+
+# Or specify a different port if 8000 is in use
+php artisan serve --port=8001
 ```
 The backend will run on `http://localhost:8000`
 
@@ -63,14 +76,29 @@ npm install
 ```
 
 ### 2. Environment Configuration
-Create a `.env` file in the frontend directory (already created):
+Create a `.env` file in the frontend root directory:
 ```env
 VITE_API_URL=http://localhost:8000/api
 VITE_APP_NAME=FoodHub
 VITE_APP_ENV=development
 ```
 
-### 3. Start Frontend Development Server
+### 3. Available Scripts
+```bash
+# Start development server (runs on port 3000)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint and check code quality
+npm run lint
+```
+
+### 4. Start Frontend Development Server
 ```bash
 npm run dev
 ```
@@ -94,29 +122,34 @@ These settings are configured in:
 
 ### Public Endpoints
 ```
-POST   /api/auth/register     - Register new user
-POST   /api/auth/login        - Login user
-GET    /api/menu-items        - Get all menu items
-GET    /api/menu-items/{id}   - Get single menu item
-GET    /api/health            - Health check
+POST   /api/auth/register         - Register new user
+POST   /api/auth/login            - Login user
+GET    /api/menu-items            - Get all menu items
+GET    /api/menu-items/{id}       - Get single menu item
+GET    /api/health                - Health check
+GET    /api/users                 - Get all users (public)
 ```
 
 ### Protected Endpoints (Requires Authentication)
 ```
-GET    /api/auth/me           - Get current user
-POST   /api/auth/logout       - Logout user
-POST   /api/orders            - Create new order
-GET    /api/orders/my-orders  - Get user's orders
-GET    /api/orders/{id}       - Get single order
+GET    /api/auth/me               - Get current user
+POST   /api/auth/logout           - Logout user
+POST   /api/orders                - Create new order (with validation)
+GET    /api/orders/my-orders      - Get user's orders
+GET    /api/orders/{id}           - Get single order
+GET    /api/payments              - Get user's payment history
 ```
 
 ### Admin Only Endpoints
 ```
-POST   /api/menu-items        - Create menu item
-PUT    /api/menu-items/{id}   - Update menu item
-DELETE /api/menu-items/{id}   - Delete menu item
-GET    /api/orders            - Get all orders
-PUT    /api/orders/{id}/status - Update order status
+POST   /api/menu-items            - Create menu item (with image upload)
+PUT    /api/menu-items/{id}       - Update menu item
+DELETE /api/menu-items/{id}       - Delete menu item
+GET    /api/orders                - Get all orders
+PUT    /api/orders/{id}/status    - Update order status
+GET    /api/payments              - Get all payments
+PUT    /api/payments/{id}/status  - Update payment status
+GET    /api/users                 - Get all users
 ```
 
 ## Authentication Flow
@@ -303,15 +336,64 @@ Update production URLs:
 5. **SQL Injection**: Using Eloquent ORM prevents SQL injection
 6. **XSS Protection**: React automatically escapes output
 
+---
+
+## New Features (Recent Implementations)
+
+### 1. Image Upload Validation
+- Menu item image uploads now accept **PNG and JPG only**
+- Validation occurs on both frontend and backend
+- Invalid file types display clear error messages
+- File size validation included
+- Images stored securely in storage directory
+
+### 2. Order Preview Modal
+- Click any order card in "My Orders" to view full details in a modal
+- Modal displays:
+  - Order ID and placement date
+  - Status badge and delivery type
+  - Complete item list with quantities
+  - Amount breakdown (Subtotal, Tax, Total)
+  - Payment method and payment status
+- Clean, compact design without scrolling
+- Easy to close with close button or clicking outside
+
+### 3. Payment Method Updates
+- GCash payment method is now branded as "**Online Payment**"
+- QR code modal updated with generic "Online Payment QR" title
+- Supports both cash and online payment options
+- Payment status tracking (Paid/Pending)
+- Transaction reference tracking for online payments
+
+### 4. Dashboard Improvements
+- Payment Distribution chart shows cash and online payment breakdown
+- Revenue charts and sales analytics
+- Admin menu management with concise add/edit modals
+- Real-time order status updates
+- Responsive admin interface
+
+### 5. Checkout Page Refinements
+- Minimal padding to maximize usable space
+- Responsive design for all screen sizes
+- Form validation with real-time error feedback
+- Tax calculation (10% of subtotal)
+- Order tracking with unique Order ID
+- Support for multiple delivery types (Dine In, Pick Up, Delivery)
+
+---
+
 ## Next Steps
 
 1. ✅ Backend API setup complete
 2. ✅ Frontend React app setup complete
 3. ✅ CORS configuration complete
 4. ✅ Authentication integration complete
-5. 🔲 Test all user flows
-6. 🔲 Add payment integration (future enhancement)
-7. 🔲 Deploy to production
+5. ✅ Image upload validation implemented
+6. ✅ Order preview modal implemented
+7. ✅ Payment methods configured
+8. 🔲 Test all user flows
+9. 🔲 Setup payment gateway integration (future enhancement)
+10. 🔲 Deploy to production
 
 ## Support
 

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils/helpers';
 import toast from 'react-hot-toast';
@@ -18,7 +18,7 @@ const CheckoutPage = () => {
   const [showQRPreview, setShowQRPreview] = useState(false);
   const orderIdRef = useRef(null);
   const qrRef = useRef(null);
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   
   // Form fields
   const [formData, setFormData] = useState({
@@ -39,6 +39,16 @@ const CheckoutPage = () => {
     paymentMethod: '',
     gcashReference: ''
   });
+
+  // Auto-fill customer name from logged-in user
+  useEffect(() => {
+    if (user?.name) {
+      setFormData(prev => ({
+        ...prev,
+        customerName: user.name
+      }));
+    }
+  }, [user]);
 
   // Validation rules
   const validateName = (name) => {
@@ -80,7 +90,7 @@ const CheckoutPage = () => {
     return '';
   };
 
-  const validateTime = (time) => {
+  const validateTime = (time, date = formData.orderDate) => {
     if (!time) {
       return 'Order time is required';
     }
@@ -88,6 +98,25 @@ const CheckoutPage = () => {
     if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
       return 'Please enter a valid time';
     }
+    
+    // Check if time is in the past for today's date
+    const today = new Date();
+    const selectedDate = new Date(date);
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    // If selected date is today, check if time is in the past
+    if (selectedDate.getTime() === today.getTime()) {
+      const now = new Date();
+      const [hours, minutes] = time.split(':').map(Number);
+      const selectedTime = new Date();
+      selectedTime.setHours(hours, minutes, 0, 0);
+      
+      if (selectedTime <= now) {
+        return 'Order time cannot be in the past';
+      }
+    }
+    
     return '';
   };
 
@@ -119,6 +148,25 @@ const CheckoutPage = () => {
       return 'Reference cannot exceed 13 digits';
     }
     return '';
+  };
+
+  // Helper function to get minimum time for today's date
+  const getMinTimeForDate = (date) => {
+    const today = new Date();
+    const selectedDate = new Date(date);
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    // If selected date is today, calculate minimum time (add 30 minutes to current time)
+    if (selectedDate.getTime() === today.getTime()) {
+      const now = new Date();
+      const minTime = new Date(now.getTime() + 30 * 60000); // Add 30 minutes
+      const hours = String(minTime.getHours()).padStart(2, '0');
+      const minutes = String(minTime.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+    
+    return '00:00'; // For future dates, allow any time
   };
 
   const validateForm = () => {
@@ -243,6 +291,18 @@ const CheckoutPage = () => {
         break;
       case 'orderDate':
         error = validateDate(value);
+        // If date changed, re-validate the time with the new date
+        if (!error) {
+          setFormData(prev => ({
+            ...prev,
+            orderTime: prev.orderTime || getMinTimeForDate(value)
+          }));
+          error = validateTime(formData.orderTime, value);
+          setErrors(prev => ({
+            ...prev,
+            orderTime: error
+          }));
+        }
         break;
       case 'orderTime':
         error = validateTime(value);
@@ -379,7 +439,7 @@ const CheckoutPage = () => {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8" style={{backgroundColor: '#FFFDF1', minHeight: '80vh'}}>
+      <div className="max-w-6xl mx-auto px-1 sm:px-1.5 md:px-2 lg:px-3 py-4 sm:py-6 md:py-8" style={{backgroundColor: '#FFFDF1', minHeight: '80vh'}}>
         <style>
           {`
             @keyframes slideDown {
@@ -499,6 +559,7 @@ const CheckoutPage = () => {
                   type="date"
                   name="orderDate"
                   value={formData.orderDate}
+                  min={new Date().toISOString().split('T')[0]}
                   onChange={handleInputChange}
                   className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
                   style={{
@@ -520,6 +581,7 @@ const CheckoutPage = () => {
                   type="time"
                   name="orderTime"
                   value={formData.orderTime}
+                  min={getMinTimeForDate(formData.orderDate)}
                   onChange={handleInputChange}
                   className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
                   style={{
