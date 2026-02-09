@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 import AdminSidebar from '../../components/AdminSidebar';
 import AdminTopBar from '../../components/AdminTopBar';
@@ -10,13 +9,11 @@ import PaymentDistribution from '../../components/PaymentDistribution';
 import { ShoppingBag, TrendingUp, Users } from 'lucide-react';
 
 const Dashboard = () => {
-  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalOrders: 0,
     todayRevenue: 0,
     totalUsers: 0,
   });
-  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -61,8 +58,6 @@ const Dashboard = () => {
         todayRevenue: 0,
         totalUsers: 0,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -79,9 +74,9 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="flex h-screen" style={{ backgroundColor: '#FFF5E6' }}>
+    <div className="flex h-screen flex-col lg:flex-row" style={{ backgroundColor: '#FFF5E6' }}>
       {/* Sidebar - Hidden on mobile, visible on desktop */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block w-full lg:w-56">
         <AdminSidebar />
       </div>
 
@@ -91,7 +86,7 @@ const Dashboard = () => {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <AdminSidebar />
+        <AdminSidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Overlay for mobile */}
@@ -103,7 +98,7 @@ const Dashboard = () => {
       )}
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Sticky Top Bar */}
         <div className="sticky top-0 z-20">
           <AdminTopBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
@@ -111,44 +106,44 @@ const Dashboard = () => {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {/* Header */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
               <div>
-                <h1 className="text-5xl font-black" style={{ color: '#704214' }}>WELCOME, ADMIN!</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black" style={{ color: '#704214' }}>WELCOME, ADMIN!</h1>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right text-sm sm:text-base">
                 <p className="font-bold" style={{ color: '#704214' }}>{dateStr}</p>
-                <p className="text-sm" style={{ color: '#704214' }}>{timeStr}</p>
+                <p className="text-xs sm:text-sm" style={{ color: '#704214' }}>{timeStr}</p>
               </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <StatCard
                 title="TOTAL ORDERS"
                 value={stats.totalOrders}
-                icon={<ShoppingBag className="w-12 h-12" />}
+                icon={<ShoppingBag className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />}
               />
               <StatCard
                 title="TODAY'S REVENUE"
                 value={`PHP ${parseFloat(stats.todayRevenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                icon={<TrendingUp className="w-12 h-12" />}
+                icon={<TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />}
               />
               <StatCard
                 title="USERS"
                 value={stats.totalUsers}
-                icon={<Users className="w-12 h-12" />}
+                icon={<Users className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />}
               />
             </div>
 
             {/* Charts Row 1 */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <RevenueChart />
             </div>
 
             {/* Charts Row 2 */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <TopSellingProducts />
               <PaymentDistribution />
             </div>

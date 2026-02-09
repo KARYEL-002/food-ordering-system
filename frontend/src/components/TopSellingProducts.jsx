@@ -12,13 +12,9 @@ const TopSellingProducts = () => {
 
   const fetchTopSellingProducts = async () => {
     try {
-      // Fetch menu items and orders to count sales
-      const [menuRes, ordersRes] = await Promise.all([
-        api.get('/menu-items').catch(() => ({ data: { data: [] } })),
-        api.get('/orders').catch(() => ({ data: { data: [] } })),
-      ]);
+      // Fetch orders to count sales
+      const ordersRes = await api.get('/orders').catch(() => ({ data: { data: [] } }));
 
-      const menuItems = menuRes.data.data || [];
       const orders = ordersRes.data.data || [];
 
       // Filter only paid and completed orders

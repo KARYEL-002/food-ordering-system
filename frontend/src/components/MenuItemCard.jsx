@@ -1,22 +1,29 @@
 import { useState } from 'react';
 import { formatCurrency } from '../utils/helpers';
+import toast from 'react-hot-toast';
+import OptimizedImage from './OptimizedImage';
 
-const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit, onDelete }) => {
+const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit = () => {}, onDelete = () => {} }) => {
   const [showAddToCart, setShowAddToCart] = useState(false);
 
   const handleAddToCart = () => {
+    if (isAdmin) {
+      toast.error('Admins are not allowed to add items to cart');
+      return;
+    }
+
     onAddToCart(item);
     setShowAddToCart(false);
   };
 
   return (
     <div className="group h-full">
-      <div className="relative pt-16 transform transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
+      <div className="relative pt-12 sm:pt-16 md:pt-16 transform transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
         {/* Food Image - Circular at top */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 z-10 transition-smooth group-hover:scale-110 animate-pop">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 z-10 transition-smooth group-hover:scale-110 animate-pop">
           <div className="w-full h-full rounded-full overflow-hidden shadow-lg">
             {item.image_url && (
-              <img
+              <OptimizedImage
                 src={item.image_url}
                 alt={item.name}
                 className="w-full h-full object-cover transition-transform duration-300"
@@ -26,14 +33,14 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit, onDelete }) => {
         </div>
 
         {/* Card background */}
-        <div className="bg-gradient-to-br from-orange-200 to-orange-300 rounded-3xl pt-16 pb-5 px-6 transition-all duration-300 hover:shadow-2xl flex flex-col h-full">
+        <div className="bg-gradient-to-br from-orange-200 to-orange-300 rounded-2xl sm:rounded-3xl pt-12 sm:pt-16 md:pt-16 pb-4 sm:pb-5 px-4 sm:px-6 transition-all duration-300 hover:shadow-2xl flex flex-col h-full">
           {/* Content */}
-          <div className="space-y-2 flex-1 flex flex-col">
-            <h3 className="text-base font-bold mb-0" style={{fontFamily: 'Montserrat, sans-serif', color: '#704214'}}>{item.name}</h3>
+          <div className="space-y-1 sm:space-y-2 flex-1 flex flex-col">
+            <h3 className="text-sm sm:text-base font-bold mb-0" style={{fontFamily: 'Montserrat, sans-serif', color: '#704214'}}>{item.name}</h3>
             
             {/* Description */}
             {item.description && (
-              <p className="text-sm truncate mb-3 flex-1" style={{fontFamily: 'Montserrat, sans-serif', color: '#704214'}}>
+              <p className="text-xs sm:text-sm truncate mb-2 sm:mb-3 flex-1" style={{fontFamily: 'Montserrat, sans-serif', color: '#704214'}}>
                 {item.description}
               </p>
             )}
@@ -43,13 +50,13 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit, onDelete }) => {
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => onEdit(item)}
-                  className="btn btn-secondary flex-1 py-2 text-sm"
+                  className="btn btn-secondary flex-1 py-2 text-xs sm:text-sm"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => onDelete(item.id)}
-                  className="btn btn-danger flex-1 py-2 text-sm"
+                  className="btn btn-danger flex-1 py-2 text-xs sm:text-sm"
                 >
                   Delete
                 </button>
@@ -61,7 +68,7 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit, onDelete }) => {
                   <button
                     onClick={handleAddToCart}
                     disabled={!item.availability_status}
-                    className={`relative w-full py-2 px-4 rounded-full font-bold text-sm text-white overflow-hidden transition-all duration-500 ${
+                    className={`relative w-full py-2 px-4 rounded-full font-bold text-xs sm:text-sm text-white overflow-hidden transition-all duration-500 ${
                       item.availability_status
                         ? 'bg-amber-900 hover:shadow-lg active:scale-95 border-4 border-purple-500'
                         : 'bg-gray-400 cursor-not-allowed'
@@ -79,14 +86,20 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit, onDelete }) => {
                   </button>
                 ) : (
                   // Default view with price and + button
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-900" style={{fontFamily: 'Montserrat, sans-serif'}}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-900" style={{fontFamily: 'Montserrat, sans-serif'}}>
                       {formatCurrency(item.price)}
                     </span>
                     <button
-                      onClick={() => setShowAddToCart(true)}
+                      onClick={() => {
+                        if (isAdmin) {
+                          toast.error('Admins are not allowed to add items to cart');
+                          return;
+                        }
+                        setShowAddToCart(true);
+                      }}
                       disabled={!item.availability_status}
-                      className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 transform overflow-hidden ${
+                      className={`relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 transform overflow-hidden flex-shrink-0 ${
                         item.availability_status
                           ? 'bg-white shadow-md hover:shadow-lg hover:scale-110 active:scale-95'
                           : 'bg-gray-300 cursor-not-allowed'
@@ -96,7 +109,7 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit, onDelete }) => {
                       {item.availability_status && (
                         <div className="absolute inset-0 bg-gray-100 transform translate-x-full group-hover:-translate-x-full transition-transform duration-300"></div>
                       )}
-                      <span className="relative z-10 text-lg font-light text-gray-600">+</span>
+                      <span className="relative z-10 text-base sm:text-lg font-light text-gray-600">+</span>
                     </button>
                   </div>
                 )}

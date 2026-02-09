@@ -18,6 +18,10 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         try {
+            // Prevent admin users from creating orders
+            if ($request->user() && $request->user()->role && $request->user()->role->name === 'Admin') {
+                return response()->json(['error' => 'Admins are not allowed to place orders'], 403);
+            }
             $validated = $request->validate([
                 'items' => 'required|array',
                 'items.*.menu_item_id' => 'required|integer',
@@ -27,6 +31,8 @@ class OrderController extends Controller
                 'tax_amount' => 'required|numeric',
                 'total_amount' => 'required|numeric',
                 'payment_method' => 'required|string',
+                // If payment_method is gcash, require a numeric gcash_reference of reasonable length
+                'gcash_reference' => 'nullable|required_if:payment_method,gcash|string|regex:/^[0-9]+$/|min:5|max:13',
                 'status' => 'nullable|string',
                 'payment_status' => 'nullable|string',
                 'order_detail' => 'nullable|array',

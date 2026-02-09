@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import MenuItemCard from '../components/MenuItemCard';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { MdGridView, MdRamenDining, MdFastfood, MdLunchDining, MdRiceBowl, MdLocalPizza, MdIcecream, MdLocalDrink, MdSearch, MdMenu } from 'react-icons/md';
+import { MdGridView, MdRamenDining, MdFastfood, MdLunchDining, MdRiceBowl, MdLocalPizza, MdIcecream, MdLocalDrink, MdSearch } from 'react-icons/md';
+import EditMenuItemModal from '../components/modals/EditMenuItemModal';
+import ConfirmDeleteModal from '../components/modals/ConfirmDeleteModal';
 
 const Menu = () => {
-  const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFilter, setShowFilter] = useState(false);
   const [sortBy, setSortBy] = useState('default');
-  const { user } = useAuth();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingItemId, setDeletingItemId] = useState(null);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchMenuItems();
@@ -34,6 +38,61 @@ const Menu = () => {
     }
   };
 
+  const handleEdit = (item) => {
+    if (!isAdmin) {
+      toast.error('Only admins can edit menu items');
+      return;
+    }
+    setEditingItem(item);
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (updatedItem) => {
+    try {
+      setIsLoadingAction(true);
+      await api.put(`/menu-items/${updatedItem.id}`, {
+        name: updatedItem.name,
+        description: updatedItem.description,
+        price: updatedItem.price,
+        category: updatedItem.category,
+        image_url: updatedItem.image_url,
+        is_available: updatedItem.is_available
+      });
+      toast.success('Menu item updated successfully');
+      setShowEditModal(false);
+      setEditingItem(null);
+      fetchMenuItems();
+    } catch (error) {
+      toast.error('Failed to update menu item');
+    } finally {
+      setIsLoadingAction(false);
+    }
+  };
+
+  const handleDelete = (itemId) => {
+    if (!isAdmin) {
+      toast.error('Only admins can delete menu items');
+      return;
+    }
+    setDeletingItemId(itemId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setIsLoadingAction(true);
+      await api.delete(`/menu-items/${deletingItemId}`);
+      toast.success('Menu item deleted successfully');
+      setShowDeleteModal(false);
+      setDeletingItemId(null);
+      fetchMenuItems();
+    } catch (error) {
+      toast.error('Failed to delete menu item');
+    } finally {
+      setIsLoadingAction(false);
+    }
+  };
+
   // Cart state (local) — used for quick add-to-cart in this page
   const [cart, setCart] = useState(() => {
     try {
@@ -45,6 +104,10 @@ const Menu = () => {
   });
 
   const addToCart = (item) => {
+    if (isAdmin) {
+      toast.error('Admins are not allowed to add items to cart');
+      return;
+    }
     try {
       const existing = cart.find(ci => ci.id === item.id);
       let newCart = [];
@@ -97,26 +160,6 @@ const Menu = () => {
     }
   });
 
-  const handleCheckout = async (deliveryType, specialInstructions) => {
-    try {
-      const orderData = {
-        items: cart.map(item => ({
-          menu_item_id: item.id,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        delivery_type: deliveryType,
-        special_instructions: specialInstructions || null,
-      };
-
-      await api.post('/orders', orderData);
-      setCart([]);
-      toast.success('Order placed successfully!');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to place order');
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -126,11 +169,12 @@ const Menu = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8" style={{backgroundColor: '#FFFDF1'}}>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-center animate-fade-in-up" style={{fontFamily: 'Montserrat, sans-serif'}}>Our Menu</h1>
+    <div className="min-h-screen w-full" style={{backgroundColor: '#FFFDF1'}}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-10">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-center animate-fade-in-up" style={{fontFamily: 'Montserrat, sans-serif'}}>Our Menu</h1>
 
-      {/* Search Bar and Filter */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: '100ms'}}>
+        {/* Search Bar */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-8 sm:mb-10 max-w-2xl mx-auto animate-fade-in-up overflow-visible" style={{animationDelay: '100ms'}}>
         <div className="flex-1 relative">
           <input
             type="text"
@@ -141,67 +185,10 @@ const Menu = () => {
           />
           <MdSearch className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-xl sm:text-2xl text-amber-900" />
         </div>
-        <div className="relative z-50">
-          <button 
-            onClick={() => setShowFilter(!showFilter)}
-            className="w-full sm:w-auto px-6 py-3 sm:py-4 bg-orange-300 rounded-2xl hover:bg-orange-400 transition-colors flex items-center justify-center"
-          >
-            <MdMenu className="text-2xl text-gray-900" />
-          </button>
-          
-          {/* Filter Dropdown */}
-          {showFilter && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border-2 border-gray-200">
-              <div className="p-2">
-                <div className="px-3 py-2 text-xs font-bold text-gray-500 uppercase">Sort By</div>
-                <button
-                  onClick={() => { setSortBy('default'); setShowFilter(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
-                    sortBy === 'default' ? 'bg-orange-100 text-orange-900 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Default
-                </button>
-                <button
-                  onClick={() => { setSortBy('price-low-high'); setShowFilter(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
-                    sortBy === 'price-low-high' ? 'bg-orange-100 text-orange-900 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Price: Low to High
-                </button>
-                <button
-                  onClick={() => { setSortBy('price-high-low'); setShowFilter(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
-                    sortBy === 'price-high-low' ? 'bg-orange-100 text-orange-900 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Price: High to Low
-                </button>
-                <button
-                  onClick={() => { setSortBy('name-a-z'); setShowFilter(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
-                    sortBy === 'name-a-z' ? 'bg-orange-100 text-orange-900 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Name: A to Z
-                </button>
-                <button
-                  onClick={() => { setSortBy('name-z-a'); setShowFilter(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
-                    sortBy === 'name-z-a' ? 'bg-orange-100 text-orange-900 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Name: Z to A
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Category Buttons - Horizontal Scroll */}
-      <div className="mb-8 sm:mb-10 md:mb-12 animate-fade-in-up overflow-x-auto" style={{animationDelay: '200ms'}}>
+      <div className="mb-4 animate-fade-in-up" style={{overflowX: 'auto', overflowY: 'visible', animationDelay: '200ms'}}>
         <div className="flex gap-2 sm:gap-3 md:gap-4 pb-2 px-2 sm:px-0 scrollbar-hide justify-start sm:justify-center">
         {categories.map(category => {
           const categoryConfig = {
@@ -244,21 +231,79 @@ const Menu = () => {
         </div>
       </div>
 
+      {/* Sort Options - Cards */}
+      <div className="mb-6 sm:mb-8 md:mb-10 animate-fade-in-up" style={{overflowX: 'auto', overflowY: 'visible', animationDelay: '300ms'}}>
+        <div className="flex gap-2 sm:gap-2 md:gap-3 pb-2 px-2 sm:px-0 scrollbar-hide justify-start sm:justify-center flex-wrap sm:flex-nowrap">
+          <button
+            onClick={() => setSortBy('default')}
+            className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 flex-shrink-0 whitespace-nowrap ${
+              sortBy === 'default'
+                ? 'bg-orange-300 text-gray-900 shadow-lg'
+                : 'bg-pink-50 text-gray-800 hover:bg-pink-100 border-2 border-gray-200'
+            }`}
+          >
+            Default
+          </button>
+          <button
+            onClick={() => setSortBy('price-low-high')}
+            className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 flex-shrink-0 whitespace-nowrap ${
+              sortBy === 'price-low-high'
+                ? 'bg-orange-300 text-gray-900 shadow-lg'
+                : 'bg-pink-50 text-gray-800 hover:bg-pink-100 border-2 border-gray-200'
+            }`}
+          >
+            Low to High
+          </button>
+          <button
+            onClick={() => setSortBy('price-high-low')}
+            className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 flex-shrink-0 whitespace-nowrap ${
+              sortBy === 'price-high-low'
+                ? 'bg-orange-300 text-gray-900 shadow-lg'
+                : 'bg-pink-50 text-gray-800 hover:bg-pink-100 border-2 border-gray-200'
+            }`}
+          >
+            High to Low
+          </button>
+          <button
+            onClick={() => setSortBy('name-a-z')}
+            className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 flex-shrink-0 whitespace-nowrap ${
+              sortBy === 'name-a-z'
+                ? 'bg-orange-300 text-gray-900 shadow-lg'
+                : 'bg-pink-50 text-gray-800 hover:bg-pink-100 border-2 border-gray-200'
+            }`}
+          >
+            A to Z
+          </button>
+          <button
+            onClick={() => setSortBy('name-z-a')}
+            className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 flex-shrink-0 whitespace-nowrap ${
+              sortBy === 'name-z-a'
+                ? 'bg-orange-300 text-gray-900 shadow-lg'
+                : 'bg-pink-50 text-gray-800 hover:bg-pink-100 border-2 border-gray-200'
+            }`}
+          >
+            Z to A
+          </button>
+        </div>
+      </div>
+
       <div className="w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-            {sortedItems.map((item, index) => (
-              <div 
-                key={item.id}
-                className="animate-fade-in-up"
-                style={{animationDelay: `${300 + (index * 100)}ms`}}
-              >
-                <MenuItemCard
-                  item={item}
-                  onAddToCart={addToCart}
-                />
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
+          {sortedItems.map((item, index) => (
+            <div 
+              key={item.id}
+              className="animate-fade-in-up"
+              style={{animationDelay: `${300 + (index * 100)}ms`}}
+            >
+              <MenuItemCard
+                item={item}
+                onAddToCart={addToCart}
+                isAdmin={isAdmin}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </div>
+          ))}
           {sortedItems.length === 0 && (
             <div className="col-span-full text-center py-12 text-gray-500">
               No items found in this category
@@ -266,6 +311,33 @@ const Menu = () => {
           )}
         </div>
       </div>
+
+      {/* Edit Menu Item Modal */}
+      <EditMenuItemModal
+        isOpen={showEditModal}
+        item={editingItem}
+        onConfirm={handleEditSubmit}
+        onCancel={() => {
+          setShowEditModal(false);
+          setEditingItem(null);
+        }}
+        isLoading={isLoadingAction}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        title="Delete Menu Item"
+        message="Are you sure you want to delete this item? This action cannot be undone."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setDeletingItemId(null);
+        }}
+        isLoading={isLoadingAction}
+      />
+      </div>
+    </div>
   );
 };
 

@@ -30,12 +30,17 @@ const PaymentDistribution = () => {
         paymentCount[method] = (paymentCount[method] || 0) + 1;
       });
 
-      // Convert to array for pie chart
+      // Convert to array for pie chart - exclude 'online' payment method and map gcash to Online Payment
       const chartData = Object.entries(paymentCount)
-        .map(([name, value]) => ({ 
-          name: name.charAt(0).toUpperCase() + name.slice(1), 
-          value 
-        }));
+        .filter(([name]) => name.toLowerCase() !== 'online')
+        .map(([name, value]) => {
+          let displayName = name.charAt(0).toUpperCase() + name.slice(1);
+          // Map gcash to Online Payment
+          if (name.toLowerCase() === 'gcash') {
+            displayName = 'Online Payment';
+          }
+          return { name: displayName, value };
+        });
 
       setData(chartData.length > 0 ? chartData : [
         { name: 'No data', value: 1 }

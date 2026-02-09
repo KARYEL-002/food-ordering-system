@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import './AnimatedList.css';
 
@@ -12,6 +12,28 @@ const AnimatedList = ({
 }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 5 });
+
+  const scrollIntoView = useCallback((index) => {
+    if (index < visibleRange.start) {
+      setVisibleRange({ start: index, end: index + 5 });
+    } else if (index >= visibleRange.end) {
+      setVisibleRange({ start: index - 4, end: index + 1 });
+    }
+  }, [visibleRange]);
+
+  const handleNext = useCallback(() => {
+    const nextIndex = Math.min(selectedIndex + 1, items.length - 1);
+    setSelectedIndex(nextIndex);
+    scrollIntoView(nextIndex);
+    onItemSelect(items[nextIndex], nextIndex);
+  }, [selectedIndex, items, onItemSelect, scrollIntoView]);
+
+  const handlePrev = useCallback(() => {
+    const prevIndex = Math.max(selectedIndex - 1, 0);
+    setSelectedIndex(prevIndex);
+    scrollIntoView(prevIndex);
+    onItemSelect(items[prevIndex], prevIndex);
+  }, [selectedIndex, items, onItemSelect, scrollIntoView]);
 
   useEffect(() => {
     if (enableArrowNavigation) {
@@ -28,29 +50,7 @@ const AnimatedList = ({
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [selectedIndex, items.length, enableArrowNavigation]);
-
-  const handleNext = () => {
-    const nextIndex = Math.min(selectedIndex + 1, items.length - 1);
-    setSelectedIndex(nextIndex);
-    scrollIntoView(nextIndex);
-    onItemSelect(items[nextIndex], nextIndex);
-  };
-
-  const handlePrev = () => {
-    const prevIndex = Math.max(selectedIndex - 1, 0);
-    setSelectedIndex(prevIndex);
-    scrollIntoView(prevIndex);
-    onItemSelect(items[prevIndex], prevIndex);
-  };
-
-  const scrollIntoView = (index) => {
-    if (index < visibleRange.start) {
-      setVisibleRange({ start: index, end: index + 5 });
-    } else if (index >= visibleRange.end) {
-      setVisibleRange({ start: index - 4, end: index + 1 });
-    }
-  };
+  }, [enableArrowNavigation, handleNext, handlePrev]);
 
   const handleScroll = (e) => {
     const element = e.target;

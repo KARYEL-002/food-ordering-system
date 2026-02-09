@@ -33,7 +33,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Don't auto-redirect for login endpoint - let it handle its own errors
+    if (error.response?.status === 401 && !error.config.url?.includes('/auth/login')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

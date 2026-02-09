@@ -11,6 +11,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
     image: null,
     imagePreview: null
   });
+  const [imageError, setImageError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,6 +24,21 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type - only allow PNG and JPG
+      const allowedTypes = ['image/png', 'image/jpeg'];
+      if (!allowedTypes.includes(file.type)) {
+        setImageError('Only PNG and JPG image formats are allowed');
+        setFormData(prev => ({
+          ...prev,
+          image: null,
+          imagePreview: null
+        }));
+        return;
+      }
+      
+      // Clear any previous error
+      setImageError(null);
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({
@@ -62,6 +78,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
       image: null,
       imagePreview: null
     });
+    setImageError(null);
     onCancel();
   };
 
@@ -69,14 +86,14 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop overflow-y-auto">
-      <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 border-2 modal-content my-8" style={{ borderColor: '#704214' }}>
-        <h2 style={{ color: '#704214' }} className="text-2xl font-bold mb-6">
+      <div className="bg-white rounded-lg p-5 max-w-xs w-full mx-4 border-2 modal-content my-4" style={{ borderColor: '#704214' }}>
+        <h2 style={{ color: '#704214' }} className="text-lg font-bold mb-4">
           Add Menu Item
         </h2>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+            <label style={{ color: '#704214' }} className="block font-bold text-xs mb-1">
               Menu Item Name
             </label>
             <input
@@ -84,7 +101,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 border-2 rounded-lg outline-none"
+              className="w-full px-3 py-1.5 border-2 rounded-lg outline-none text-sm"
               style={{ borderColor: '#704214', color: '#704214' }}
               placeholder="e.g., Adobo (Chicken)"
               required
@@ -92,7 +109,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
           </div>
 
           <div>
-            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+            <label style={{ color: '#704214' }} className="block font-bold text-xs mb-1">
               Category
             </label>
             <input
@@ -100,29 +117,29 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-4 py-2 border-2 rounded-lg outline-none"
+              className="w-full px-3 py-1.5 border-2 rounded-lg outline-none text-sm"
               style={{ borderColor: '#704214', color: '#704214' }}
               placeholder="e.g., Main Dishes"
             />
           </div>
 
           <div>
-            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+            <label style={{ color: '#704214' }} className="block font-bold text-xs mb-1">
               Description
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2 border-2 rounded-lg outline-none resize-y"
+              rows={2}
+              className="w-full px-3 py-1.5 border-2 rounded-lg outline-none resize-y text-sm"
               style={{ borderColor: '#704214', color: '#704214' }}
-              placeholder="Short description of the menu item (optional)"
+              placeholder="Short description (optional)"
             />
           </div>
 
           <div>
-            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+            <label style={{ color: '#704214' }} className="block font-bold text-xs mb-1">
               Price
             </label>
             <input
@@ -131,7 +148,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
               value={formData.price}
               onChange={handleChange}
               step="0.01"
-              className="w-full px-4 py-2 border-2 rounded-lg outline-none"
+              className="w-full px-3 py-1.5 border-2 rounded-lg outline-none text-sm"
               style={{ borderColor: '#704214', color: '#704214' }}
               placeholder="0.00"
               required
@@ -139,14 +156,14 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
           </div>
 
           <div>
-            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+            <label style={{ color: '#704214' }} className="block font-bold text-xs mb-1">
               Status
             </label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-4 py-2 border-2 rounded-lg outline-none cursor-pointer"
+              className="w-full px-3 py-1.5 border-2 rounded-lg outline-none cursor-pointer text-sm"
               style={{ borderColor: '#704214', color: '#704214' }}
             >
               <option value="available">Available</option>
@@ -155,46 +172,53 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
           </div>
 
           <div>
-            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+            <label style={{ color: '#704214' }} className="block font-bold text-xs mb-1">
               Upload Image
             </label>
             <div className="relative">
               <input
                 type="file"
-                accept="image/*"
+                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
                 onChange={handleImageChange}
                 className="hidden"
                 id="image-input"
               />
               <label
                 htmlFor="image-input"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50"
+                className="flex items-center justify-center gap-2 w-full px-3 py-2 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50 text-sm"
                 style={{ borderColor: '#704214' }}
               >
-                <Upload size={20} style={{ color: '#704214' }} />
-                <span style={{ color: '#704214' }} className="font-semibold">
+                <Upload size={16} style={{ color: '#704214' }} />
+                <span style={{ color: '#704214' }} className="font-semibold truncate">
                   {formData.image ? formData.image.name : 'Choose Image'}
                 </span>
               </label>
             </div>
+            {imageError && (
+              <div className="mt-1 p-2 bg-red-100 border border-red-400 rounded-lg">
+                <p style={{ color: '#d32f2f' }} className="text-xs font-semibold">
+                  {imageError}
+                </p>
+              </div>
+            )}
             {formData.imagePreview && (
-              <div className="mt-3 flex justify-center">
+              <div className="mt-2 flex justify-center">
                 <img
                   src={formData.imagePreview}
                   alt="Preview"
-                  className="w-24 h-24 object-cover rounded-lg border-2"
+                  className="w-16 h-16 object-cover rounded-lg border-2"
                   style={{ borderColor: '#704214' }}
                 />
               </div>
             )}
           </div>
 
-          <div className="flex gap-4 justify-end pt-4">
+          <div className="flex gap-2 justify-end pt-2">
             <button
               type="button"
               onClick={handleCancel}
               disabled={isLoading}
-              className="px-6 py-2 rounded-lg font-bold border-2 transition-opacity hover:opacity-80 disabled:opacity-50"
+              className="px-4 py-1.5 rounded-lg font-bold border-2 transition-opacity hover:opacity-80 disabled:opacity-50 text-sm"
               style={{ borderColor: '#704214', color: '#704214' }}
             >
               Cancel
@@ -202,10 +226,10 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2 rounded-lg font-bold text-white transition-opacity hover:opacity-80 disabled:opacity-50"
+              className="px-4 py-1.5 rounded-lg font-bold text-white transition-opacity hover:opacity-80 disabled:opacity-50 text-sm"
               style={{ backgroundColor: '#00BCD4' }}
             >
-              {isLoading ? 'Adding...' : 'Add Menu Item'}
+              {isLoading ? 'Adding...' : 'Add'}
             </button>
           </div>
         </form>

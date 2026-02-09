@@ -12,5 +12,19 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // Vendor chunks
+          if (id.includes('node_modules/react')) return 'vendor-react';
+          if (id.includes('node_modules/recharts')) return 'vendor-charts';
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/react-icons')) return 'vendor-icons';
+          if (id.includes('node_modules/react-hot-toast')) return 'vendor-toast';
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600, // Increase limit to reduce warnings
   }
 })

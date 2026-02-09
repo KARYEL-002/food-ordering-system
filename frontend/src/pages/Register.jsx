@@ -12,6 +12,13 @@ const Register = () => {
     phone: '',
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    password_confirmation: ''
+  });
   const { register, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
@@ -22,14 +29,91 @@ const Register = () => {
   }
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Live validation for the changed field
+    let err = '';
+    switch (name) {
+      case 'name':
+        err = validateName(value);
+        break;
+      case 'email':
+        err = validateEmail(value);
+        break;
+      case 'phone':
+        err = validatePhone(value);
+        break;
+      case 'password':
+        err = validatePassword(value);
+        // also re-validate confirmation
+        if (formData.password_confirmation && value !== formData.password_confirmation) {
+          setErrors(prev => ({ ...prev, password_confirmation: 'Passwords do not match' }));
+        } else {
+          setErrors(prev => ({ ...prev, password_confirmation: '' }));
+        }
+        break;
+      case 'password_confirmation':
+        err = value === formData.password ? '' : 'Passwords do not match';
+        break;
+      default:
+        break;
+    }
+
+    setErrors(prev => ({ ...prev, [name]: err }));
+  };
+
+  const validateName = (name) => {
+    if (!name.trim()) return 'Full name is required';
+    if (name.trim().length < 3) return 'Full name must be at least 3 characters';
+    if (!/^[a-zA-Z\s'-]+$/.test(name)) return 'Full name contains invalid characters';
+    return '';
+  };
+
+  const validateEmail = (email) => {
+    if (!email.trim()) return 'Email is required';
+    const re = /^\S+@\S+\.\S+$/;
+    if (!re.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone.trim()) return '';
+    const phoneRegex = /^(?:09\d{9}|\+639\d{9}|09\d{2}\s\d{3}\s\d{4})$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'Please enter a valid Philippine phone number';
+    return '';
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    return '';
+  };
+
+  const isFormValidNow = () => {
+    // Check required fields and no errors
+    if (validateName(formData.name)) return false;
+    if (validateEmail(formData.email)) return false;
+    if (validatePassword(formData.password)) return false;
+    if (formData.password !== formData.password_confirmation) return false;
+    if (validatePhone(formData.phone)) return false;
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.password_confirmation) {
-      toast.error('Passwords do not match');
+    // Run final validation and show inline errors
+    const newErrors = {
+      name: validateName(formData.name),
+      email: validateEmail(formData.email),
+      phone: validatePhone(formData.phone),
+      password: validatePassword(formData.password),
+      password_confirmation: formData.password === formData.password_confirmation ? '' : 'Passwords do not match'
+    };
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(v => v)) {
+      toast.error('Please fix the highlighted errors');
       return;
     }
 
@@ -90,6 +174,7 @@ const Register = () => {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-800 focus:border-transparent outline-none transition-all"
                 placeholder="Full Name"
               />
+              {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name}</p>}
             </div>
 
             <div>
@@ -106,6 +191,7 @@ const Register = () => {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-800 focus:border-transparent outline-none transition-all"
                 placeholder="Email Address"
               />
+              {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
             </div>
 
             <div>
@@ -121,6 +207,7 @@ const Register = () => {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-800 focus:border-transparent outline-none transition-all"
                 placeholder="Phone"
               />
+              {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone}</p>}
             </div>
 
             <div>
@@ -137,6 +224,7 @@ const Register = () => {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-800 focus:border-transparent outline-none transition-all"
                 placeholder="Password"
               />
+              {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
             </div>
 
             <div>
@@ -153,11 +241,12 @@ const Register = () => {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-800 focus:border-transparent outline-none transition-all"
                 placeholder="Confirm Password"
               />
+              {errors.password_confirmation && <p className="text-xs text-red-600 mt-1">{errors.password_confirmation}</p>}
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isFormValidNow()}
               className="w-full py-2.5 rounded-full text-white font-medium transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               style={{backgroundColor: '#704214', fontFamily: 'Montserrat, sans-serif'}}
             >

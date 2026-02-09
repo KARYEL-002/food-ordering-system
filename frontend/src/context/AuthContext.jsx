@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../utils/api';
 
@@ -90,9 +91,9 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
-    isChef: user?.role === 'chef',
-    isCustomer: user?.role === 'customer',
+    isAdmin: user?.role?.toLowerCase() === 'admin',
+    isChef: user?.role?.toLowerCase() === 'chef',
+    isCustomer: user?.role?.toLowerCase() === 'customer',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

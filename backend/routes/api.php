@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\UserController;
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1'); // 10 attempts per minute per IP
 Route::get('/menu-items', [MenuItemController::class, 'index']);
 Route::get('/menu-items/{id}', [MenuItemController::class, 'show']);
 

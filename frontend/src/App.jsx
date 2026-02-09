@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -10,12 +11,21 @@ import Menu from './pages/Menu';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
-import Dashboard from './pages/admin/Dashboard';
-import MenuManagement from './pages/admin/MenuManagement';
-import OrdersManagement from './pages/admin/OrdersManagement';
-import PaymentsManagement from './pages/admin/PaymentsManagement';
-import UsersManagement from './pages/admin/UsersManagement';
-import ChefOrders from './pages/staff/ChefOrders';
+
+// Lazy load admin pages for code splitting
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const MenuManagement = lazy(() => import('./pages/admin/MenuManagement'));
+const OrdersManagement = lazy(() => import('./pages/admin/OrdersManagement'));
+const PaymentsManagement = lazy(() => import('./pages/admin/PaymentsManagement'));
+const UsersManagement = lazy(() => import('./pages/admin/UsersManagement'));
+const ChefOrders = lazy(() => import('./pages/staff/ChefOrders'));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-900"></div>
+  </div>
+);
 
 function App() {
   return (
@@ -34,6 +44,7 @@ function AppContent() {
   return (
     <div className={isAdminRoute ? 'min-h-screen' : 'min-h-screen bg-gray-50'}>
       {!isAdminRoute && <Navbar />}
+      <main>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -55,7 +66,9 @@ function AppContent() {
           path="/admin/dashboard"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <Dashboard />
+              <Suspense fallback={<PageLoader />}>
+                <Dashboard />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -64,7 +77,9 @@ function AppContent() {
           path="/admin/menu"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <MenuManagement />
+              <Suspense fallback={<PageLoader />}>
+                <MenuManagement />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -73,7 +88,9 @@ function AppContent() {
           path="/admin/orders"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <OrdersManagement />
+              <Suspense fallback={<PageLoader />}>
+                <OrdersManagement />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -82,7 +99,9 @@ function AppContent() {
           path="/admin/payments"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <PaymentsManagement />
+              <Suspense fallback={<PageLoader />}>
+                <PaymentsManagement />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -91,7 +110,9 @@ function AppContent() {
           path="/admin/users"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <UsersManagement />
+              <Suspense fallback={<PageLoader />}>
+                <UsersManagement />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -100,13 +121,16 @@ function AppContent() {
           path="/chef/orders"
           element={
             <ProtectedRoute allowedRoles={['chef']}>
-              <ChefOrders />
+              <Suspense fallback={<PageLoader />}>
+                <ChefOrders />
+              </Suspense>
             </ProtectedRoute>
           }
         />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </main>
       <Toaster position="top-right" />
     </div>
   );

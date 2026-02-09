@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\AuthService;
+use App\Exceptions\LoginException;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,10 +21,10 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string',
-                'email' => 'required|email',
-                'password' => 'required|string|min:6',
-                'phone' => 'nullable|string',
+                'name' => ['required', 'string', 'min:3', "regex:/^[a-zA-Z\s'\-]+$/"],
+                'email' => ['required', 'email', 'unique:users,email'],
+                'password' => ['required', 'string', 'min:8'],
+                'phone' => ['nullable', 'string', 'regex:/^(?:09\d{9}|\+639\d{9})$/'],
                 'role' => 'nullable|string',
             ]);
 
@@ -58,6 +59,24 @@ class AuthController extends Controller
                 'message' => 'Login successful',
                 'data' => $user,
             ], 200);
+        } catch (LoginException $e) {
+            // Handle custom login exceptions
+            if ($e->type === 'account_locked') {
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'type' => 'account_locked',
+                    'minutesRemaining' => $e->data['minutesRemaining'],
+                    'secondsRemaining' => $e->data['secondsRemaining'],
+                ], 429); // 429 Too Many Requests
+            } elseif ($e->type === 'wrong_credentials') {
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'type' => 'wrong_credentials',
+                    'attemptsRemaining' => $e->data['attemptsRemaining'],
+                ], 401);
+            }
+            
+            return response()->json(['error' => $e->getMessage()], 401);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 401);
         }

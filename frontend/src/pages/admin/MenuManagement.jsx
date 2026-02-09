@@ -9,13 +9,13 @@ import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
-    className="px-8 py-8 rounded-lg border-2 flex flex-col justify-center"
+    className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 rounded-lg border-2 flex flex-col justify-center"
     style={{ backgroundColor: bgColor, borderColor: '#704214' }}
   >
-    <p style={{ color: '#704214' }} className="font-bold text-sm uppercase tracking-wider">
+    <p style={{ color: '#704214' }} className="font-bold text-xs sm:text-sm uppercase tracking-wider">
       {title}
     </p>
-    <p style={{ color: '#704214' }} className="text-2xl font-bold mt-4">
+    <p style={{ color: '#704214' }} className="text-xl sm:text-2xl font-bold mt-2 sm:mt-4">
       {value}
     </p>
   </div>
@@ -106,7 +106,7 @@ const MenuManagement = () => {
   const confirmAddItem = async (formData) => {
     try {
       setIsAdding(true);
-      const response = await api.post('/menu-items', formData);
+      await api.post('/menu-items', formData);
       setIsAddingItem(false);
       // Hot reload - fetch fresh data
       setTimeout(() => {
@@ -140,9 +140,9 @@ const MenuManagement = () => {
   const unavailableItems = menuItems.filter(item => !item.availability_status).length;
 
   return (
-    <div className="flex h-screen" style={{ backgroundColor: '#FFFDF1' }}>
+    <div className="flex h-screen flex-col lg:flex-row" style={{ backgroundColor: '#FFFDF1' }}>
       {/* Sidebar - Hidden on mobile, visible on desktop */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block w-full lg:w-56">
         <AdminSidebar />
       </div>
 
@@ -152,7 +152,7 @@ const MenuManagement = () => {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <AdminSidebar />
+        <AdminSidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Overlay for mobile */}
@@ -164,7 +164,7 @@ const MenuManagement = () => {
       )}
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Sticky Top Bar */}
         <div className="sticky top-0 z-20">
           <AdminTopBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
@@ -172,17 +172,17 @@ const MenuManagement = () => {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {/* Title */}
             <h1
               style={{ color: '#704214' }}
-              className="text-4xl font-bold mb-8"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8"
             >
               MENU MANAGEMENT
             </h1>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10">
               <StatCard title="TOTAL ITEMS" value={totalItems} />
               <StatCard title="AVAILABLE" value={availableItems} />
               <StatCard title="SOLD OUT" value={soldOutItems} />
@@ -190,29 +190,30 @@ const MenuManagement = () => {
             </div>
 
           {/* Search Bar and Add Button */}
-          <div className="mb-8 flex gap-4">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
             <div className="flex-1 relative border-2 rounded-lg" style={{ borderColor: '#704214' }}>
               <input
                 type="text"
                 placeholder="Search menu items..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-6 py-3 bg-white outline-none"
+                className="w-full px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-white outline-none text-xs sm:text-sm"
                 style={{ color: '#704214' }}
               />
               <Search
-                className="absolute right-4 top-1/2 transform -translate-y-1/2"
-                size={20}
+                className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 sm:w-5 sm:h-5"
+                size={16}
                 style={{ color: '#704214' }}
               />
             </div>
             <button
               onClick={() => setIsAddingItem(true)}
-              className="px-6 py-3 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center gap-2 flex-shrink-0"
+              className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base whitespace-nowrap"
               style={{ backgroundColor: '#00BCD4' }}
             >
-              <Plus size={20} />
-              Add Menu
+              <Plus size={18} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Add Menu</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
 

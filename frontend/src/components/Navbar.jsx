@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MdShoppingCart, MdAccountCircle } from 'react-icons/md';
+import { MdShoppingCart, MdAccountCircle, MdClose, MdMenu } from 'react-icons/md';
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated, loading } = useAuth();
+  const { user, logout, isAuthenticated, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -33,11 +35,11 @@ const Navbar = () => {
 
   if (loading) {
     return (
-      <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-4">
+      <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-3 sm:py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
-              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-28 w-auto" />
+              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-16 sm:h-20 md:h-28 w-auto" />
             </Link>
           </div>
         </div>
@@ -46,50 +48,57 @@ const Navbar = () => {
   }
 
   return (
-    <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-4">
+    <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-3 sm:py-4 sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div>
             <Link to="/" className="flex items-center">
-              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-28 w-auto" />
+              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-16 sm:h-20 md:h-28 w-auto" />
             </Link>
           </div>
 
-          {/* Right Side - Menu Links and Cart */}
-          <div className="flex items-center space-x-6">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
             <Link
               to="/"
-              className="text-gray-800 hover:text-amber-900 font-bold transition-colors"
+              className="text-gray-800 hover:text-amber-900 font-bold transition-colors text-sm lg:text-base"
             >
               Home
             </Link>
             <Link
               to="/menu"
-              className="text-gray-800 hover:text-amber-900 font-bold transition-colors"
+              className="text-gray-800 hover:text-amber-900 font-bold transition-colors text-sm lg:text-base"
             >
               Menu
             </Link>
             {isAuthenticated && user ? (
-              <span className="text-gray-800 font-bold">
+              <span className="text-gray-800 font-bold text-sm lg:text-base">
                 Welcome, {user.name.split(' ')[0]}
               </span>
             ) : (
               <Link
                 to="/login"
-                className="text-gray-800 hover:text-amber-900 font-bold transition-colors"
+                className="text-gray-800 hover:text-amber-900 font-bold transition-colors text-sm lg:text-base"
               >
                 Login/Sign up
               </Link>
             )}
             
             {/* Cart Icon */}
-            <Link
-              to="/cart"
+            <button
+              onClick={() => {
+                if (isAdmin) {
+                  setShowAdminModal(true);
+                  return;
+                }
+                navigate('/cart');
+              }}
               className="text-amber-900 hover:text-amber-700 transition-colors"
+              aria-label="Cart"
             >
-              <MdShoppingCart className="w-6 h-6" />
-            </Link>
+              <MdShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
 
             {/* Account Dropdown */}
             {isAuthenticated && user && (
@@ -101,7 +110,7 @@ const Navbar = () => {
                   onClick={() => setShowDropdown(!showDropdown)}
                   className="text-amber-900 hover:text-amber-700 transition-colors"
                 >
-                  <MdAccountCircle className="w-6 h-6" />
+                  <MdAccountCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
                 <div className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 transition-all z-50 ${
                   showDropdown ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
@@ -153,8 +162,154 @@ const Navbar = () => {
               </div>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center gap-3">
+            {/* Cart Icon Mobile */}
+            <button
+              onClick={() => {
+                if (isAdmin) {
+                  setShowAdminModal(true);
+                  return;
+                }
+                navigate('/cart');
+              }}
+              className="text-amber-900 hover:text-amber-700 transition-colors"
+              aria-label="Cart"
+            >
+              <MdShoppingCart className="w-5 h-5" />
+            </button>
+
+            {/* Hamburger Menu */}
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="text-amber-900 hover:text-amber-700 transition-colors p-1"
+              aria-label="Menu"
+            >
+              {showMobileMenu ? (
+                <MdClose className="w-6 h-6" />
+              ) : (
+                <MdMenu className="w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
+            <div className="space-y-3">
+              <Link
+                to="/"
+                className="block text-gray-800 hover:text-amber-900 font-bold transition-colors px-4 py-2 rounded"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Home
+              </Link>
+              <Link
+                to="/menu"
+                className="block text-gray-800 hover:text-amber-900 font-bold transition-colors px-4 py-2 rounded"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Menu
+              </Link>
+              {isAuthenticated && user ? (
+                <>
+                  <div className="px-4 py-2 text-gray-800 font-bold">
+                    Welcome, {user.name.split(' ')[0]}
+                  </div>
+                  {(user.role === 'customer' || user.role === 'Customer') && (
+                    <Link
+                      to="/orders"
+                      className="block text-gray-800 hover:text-amber-900 font-semibold transition-colors px-4 py-2 rounded"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      My Orders
+                    </Link>
+                  )}
+                  {(user.role === 'admin' || user.role === 'Admin') && (
+                    <>
+                      <Link
+                        to="/admin/dashboard"
+                        className="block text-gray-800 hover:text-amber-900 font-semibold transition-colors px-4 py-2 rounded"
+                        onClick={() => setShowMobileMenu(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/admin/menu"
+                        className="block text-gray-800 hover:text-amber-900 font-semibold transition-colors px-4 py-2 rounded"
+                        onClick={() => setShowMobileMenu(false)}
+                      >
+                        Manage Menu
+                      </Link>
+                    </>
+                  )}
+                  {(user.role === 'chef' || user.role === 'Chef') && (
+                    <Link
+                      to="/chef/orders"
+                      className="block text-gray-800 hover:text-amber-900 font-semibold transition-colors px-4 py-2 rounded"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      Orders to Prepare
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowMobileMenu(false);
+                    }}
+                    className="w-full text-left text-red-600 hover:text-red-800 font-semibold transition-colors px-4 py-2 rounded"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="block text-gray-800 hover:text-amber-900 font-bold transition-colors px-4 py-2 rounded"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Login/Sign up
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Admin Modal */}
+      {showAdminModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-5 max-w-xs w-full mx-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-base font-semibold" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>Access Denied</span>
+              <button
+                onClick={() => setShowAdminModal(false)}
+                className="text-gray-400 hover:text-gray-700 text-lg font-bold"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-700 mb-1" style={{fontFamily: 'Montserrat, sans-serif'}}>
+                Admins cannot place orders.
+              </p>
+              <p className="text-xs text-gray-500" style={{fontFamily: 'Montserrat, sans-serif'}}>
+                Use the admin panel for management.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAdminModal(false)}
+              className="w-full px-4 py-1 text-white text-xs font-semibold rounded-full hover:opacity-90 transition-all shadow"
+              style={{backgroundColor: '#704214', fontFamily: 'Montserrat, sans-serif'}}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -8,13 +8,13 @@ import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
-    className="px-8 py-8 rounded-lg border-2 flex flex-col justify-center"
+    className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 rounded-lg border-2 flex flex-col justify-center"
     style={{ backgroundColor: bgColor, borderColor: '#704214' }}
   >
-    <p style={{ color: '#704214' }} className="font-bold text-sm uppercase tracking-wider">
+    <p style={{ color: '#704214' }} className="font-bold text-xs sm:text-sm uppercase tracking-wider">
       {title}
     </p>
-    <p style={{ color: '#704214' }} className="text-2xl font-bold mt-4">
+    <p style={{ color: '#704214' }} className="text-xl sm:text-2xl font-bold mt-2 sm:mt-4">
       {value}
     </p>
   </div>
@@ -121,9 +121,9 @@ const OrdersManagement = () => {
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
 
   return (
-    <div className="flex h-screen" style={{ backgroundColor: '#FFFDF1' }}>
+    <div className="flex h-screen flex-col lg:flex-row" style={{ backgroundColor: '#FFFDF1' }}>
       {/* Sidebar - Hidden on mobile, visible on desktop */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block w-full lg:w-56">
         <AdminSidebar />
       </div>
 
@@ -133,7 +133,7 @@ const OrdersManagement = () => {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <AdminSidebar />
+        <AdminSidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Overlay for mobile */}
@@ -145,7 +145,7 @@ const OrdersManagement = () => {
       )}
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Sticky Top Bar */}
         <div className="sticky top-0 z-20">
           <AdminTopBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
@@ -153,30 +153,30 @@ const OrdersManagement = () => {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {/* Title */}
             <h1
               style={{ color: '#704214' }}
-              className="text-4xl font-bold mb-8"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8"
             >
               ORDERS MANAGEMENT
             </h1>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10">
               <StatCard title="TOTAL ORDERS" value={totalOrders} />
               <StatCard title="COMPLETED" value={completedOrders} />
               <StatCard title="PENDING" value={pendingOrders} />
             </div>
 
             {/* Filter Section */}
-            <div className="mb-8 flex gap-4 items-center p-6 rounded-lg border-2" style={{ borderColor: '#7C3AED', backgroundColor: 'white' }}>
-              <div className="flex gap-3">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center p-4 sm:p-6 rounded-lg border-2 overflow-x-auto" style={{ borderColor: '#7C3AED', backgroundColor: 'white' }}>
+              <div className="flex gap-2 sm:gap-3 flex-wrap">
                 {['all', 'today', 'week', 'month'].map((type) => (
                   <button
                     key={type}
                     onClick={() => setFilterType(type)}
-                    className="px-6 py-2 rounded-lg font-semibold transition-all text-sm"
+                    className="px-3 sm:px-6 py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm whitespace-nowrap"
                     style={{
                       backgroundColor: filterType === type ? '#704214' : '#FFFDF1',
                       color: filterType === type ? 'white' : '#704214',
