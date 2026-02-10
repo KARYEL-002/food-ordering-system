@@ -38,7 +38,7 @@ class OrderService
             'payment_status' => $orderData['payment_status'] ?? 'pending',
         ]);
 
-        // Add order items
+        // Add order items and decrease inventory
         foreach ($items as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
@@ -46,6 +46,19 @@ class OrderService
                 'quantity' => $item['quantity'],
                 'price' => $item['price'] ?? MenuItem::find($item['menu_item_id'])->price,
             ]);
+
+            // Decrease quantity_available and auto-mark as unavailable if sold out
+            $menuItem = MenuItem::find($item['menu_item_id']);
+            $remainingQuantity = $menuItem->quantity_available - $item['quantity'];
+            
+            $updateData = ['quantity_available' => max(0, $remainingQuantity)];
+            
+            // Auto-mark as unavailable if stock reaches 0
+            if ($remainingQuantity <= 0) {
+                $updateData['availability_status'] = false;
+            }
+            
+            $menuItem->update($updateData);
         }
 
         // Create order detail if provided
@@ -97,6 +110,23 @@ class OrderService
         }
 
         $order->update(['status' => $status]);
+        return $order;
+    }
+
+    public function cancelOrder($orderId)
+    {
+        $order = Order::find($orderId);
+        if (!$order) {
+            throw new \Exception('Order not found');
+        }
+
+        // Only allow cancellation if order is pending, confirmed, or preparing
+        $cancellableStatuses = ['pending', 'confirmed', 'preparing'];
+        if (!in_array($order->status, $cancellableStatuses)) {
+            throw new \Exception('Only ' . implode(', ', $cancellableStatuses) . ' orders can be cancelled');
+        }
+
+        $order->update(['status' => 'cancelled']);
         return $order;
     }
 

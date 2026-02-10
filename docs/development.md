@@ -6,6 +6,10 @@
 ## Overview
 Day 2 focuses on implementing the core backend and frontend functionality with proper layered architecture and basic API integration. Two parallel sessions will handle backend development and frontend development respectively.
 
+### System Architecture
+
+The Food Ordering System is built on a **client-server architecture** with clear separation of concerns. The **Laravel REST API backend** serves as the single source of truth for all data operations, managing user authentication, product inventory, order processing, and payment tracking through a well-defined database schema with proper relationships and migrations. The **React frontend** communicates exclusively with this API through HTTP requests, handling presentation logic, user interactions, and state management for a responsive user experience. This decoupled design ensures scalability, maintainability, and allows the two teams to work independently: backend engineers focus on business logic, data validation, and security through authentication middleware and role-based access control, while frontend engineers concentrate on UI/UX, form handling, and seamless integration with the API endpoints. The entire workflow—from customer browsing products, adding items to cart, completing checkout, to admin management of menu items and order status—is driven by this API contract between frontend and backend, ensuring consistency and reliability across the application.
+
 ---
 
 ## 🟦 Session 1: Backend Development

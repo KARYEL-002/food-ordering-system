@@ -10,6 +10,8 @@ const CartPage = () => {
   const { isAuthenticated, isAdmin } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [editingQuantityId, setEditingQuantityId] = useState(null);
+  const [quantityInput, setQuantityInput] = useState('');
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -41,9 +43,50 @@ const CartPage = () => {
       removeFromCart(itemId);
       return;
     }
-    setCartItems(cartItems.map(item =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
+
+    // Find the item to check limits
+    const item = cartItems.find(ci => ci.id === itemId);
+    if (!item) return;
+
+    // Check availability limit
+    const maxAvailable = item.quantity_available || 10;
+    if (newQuantity > maxAvailable) {
+      toast.error(`Only ${maxAvailable} items available`);
+      return;
+    }
+
+    // Check max per customer limit (default 10)
+    const maxPerCustomer = item.max_order_per_customer || 10;
+    if (newQuantity > maxPerCustomer) {
+      toast.error(`Maximum ${maxPerCustomer} items per order`);
+      return;
+    }
+
+    setCartItems(cartItems.map(cartItem =>
+      cartItem.id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem
     ));
+  };
+
+  const handleQuantityInputChange = (itemId, value) => {
+    setQuantityInput(value);
+  };
+
+  const handleQuantityInputBlur = (itemId) => {
+    const newQuantity = parseInt(quantityInput) || 0;
+    if (newQuantity > 0) {
+      updateQuantity(itemId, newQuantity);
+    }
+    setEditingQuantityId(null);
+    setQuantityInput('');
+  };
+
+  const handleQuantityInputKeyPress = (itemId, e) => {
+    if (e.key === 'Enter') {
+      handleQuantityInputBlur(itemId);
+    } else if (e.key === 'Escape') {
+      setEditingQuantityId(null);
+      setQuantityInput('');
+    }
   };
 
   const removeFromCart = (itemId) => {
@@ -145,7 +188,31 @@ const CartPage = () => {
                   style={{color: '#704214'}}>
                   −
                 </button>
-                <span className="w-4 text-center font-bold text-xs" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>{item.quantity}</span>
+                {editingQuantityId === item.id ? (
+                  <input
+                    type="number"
+                    value={quantityInput}
+                    onChange={(e) => handleQuantityInputChange(item.id, e.target.value)}
+                    onBlur={() => handleQuantityInputBlur(item.id)}
+                    onKeyDown={(e) => handleQuantityInputKeyPress(item.id, e)}
+                    autoFocus
+                    min="1"
+                    className="w-8 text-center font-bold text-xs outline-none bg-transparent border-b [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    style={{color: '#704214', fontFamily: 'Montserrat, sans-serif', borderColor: '#704214'}}
+                  />
+                ) : (
+                  <span
+                    onClick={() => {
+                      setEditingQuantityId(item.id);
+                      setQuantityInput(item.quantity.toString());
+                    }}
+                    className="w-8 text-center font-bold text-xs cursor-pointer hover:opacity-70 transition-opacity"
+                    style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}
+                    title="Click to edit quantity"
+                  >
+                    {item.quantity}
+                  </span>
+                )}
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                   className="w-5 h-5 flex items-center justify-center font-bold text-xs sm:text-sm transition-colors"

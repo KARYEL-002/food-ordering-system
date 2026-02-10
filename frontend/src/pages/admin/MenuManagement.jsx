@@ -91,7 +91,8 @@ const MenuManagement = () => {
         description: updatedItem.description || '',
         price: parseFloat(updatedItem.price), // Convert to number
         image_url: updatedItem.image_url || '',
-        availability_status: availability_status
+        availability_status: availability_status,
+        quantity_available: parseInt(updatedItem.quantity_available) || 10
       };
       
       console.log('Sending payload:', payload); // Debug log
@@ -264,6 +265,9 @@ const MenuManagement = () => {
                       <p className="font-bold text-base">Price</p>
                     </th>
                     <th className="px-6 py-5 text-left" style={{ color: '#704214' }}>
+                      <p className="font-bold text-base">Stock</p>
+                    </th>
+                    <th className="px-6 py-5 text-left" style={{ color: '#704214' }}>
                       <p className="font-bold text-base">Status</p>
                     </th>
                     <th className="px-6 py-5 text-left" style={{ color: '#704214' }}>
@@ -289,6 +293,25 @@ const MenuManagement = () => {
                       </td>
                       <td className="px-6 py-5" style={{ color: '#704214' }}>
                         <p className="text-base font-semibold">{parseFloat(item.price).toFixed(2)}</p>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="px-3 py-1 rounded-full text-sm font-bold"
+                            style={{
+                              backgroundColor: item.quantity_available > 10 ? '#C0F4C4' : item.quantity_available > 0 ? '#FFE6B3' : '#FFB3B3',
+                              color: item.quantity_available > 10 ? '#065F46' : item.quantity_available > 0 ? '#B8860B' : '#7C2D12'
+                            }}
+                          >
+                            {item.quantity_available || 0} quantity
+                          </span>
+                          {item.quantity_available <= 5 && item.quantity_available > 0 && (
+                            <span className="text-xs font-bold text-orange-600" title="Low stock">⚠️</span>
+                          )}
+                          {item.quantity_available === 0 && (
+                            <span  className="text-xs font-bold text-red-600" title="Out of stock">🚫</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-5">
                         <span

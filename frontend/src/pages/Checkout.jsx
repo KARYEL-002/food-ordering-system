@@ -341,17 +341,20 @@ const CheckoutPage = () => {
   };
 
   // Save order id as image
-  const handleSaveOrderId = () => {
+  const handleSaveOrderId = async () => {
     if (!orderIdRef.current) return;
-    const node = orderIdRef.current;
-    import('html2canvas').then(html2canvas => {
-      html2canvas.default(node).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `order-id-${orderId}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-      });
-    });
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(orderIdRef.current);
+      const link = document.createElement('a');
+      link.download = `order-id-${orderId}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success('Order ID saved successfully!');
+    } catch (error) {
+      console.error('Error saving order ID:', error);
+      toast.error('Failed to save order ID');
+    }
   };
 
   // Save QR code

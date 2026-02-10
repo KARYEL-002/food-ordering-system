@@ -19,7 +19,7 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules/react')) return 'vendor-react';
-          if (id.includes('node_modules/recharts')) return 'vendor-charts';
+          if (id.includes('node_modules/chart.js')) return 'vendor-charts';
           if (id.includes('node_modules/lucide-react') || id.includes('node_modules/react-icons')) return 'vendor-icons';
           if (id.includes('node_modules/react-hot-toast')) return 'vendor-toast';
         }

@@ -8,6 +8,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
     description: '',
     price: '',
     status: 'available',
+    quantity_available: 10,
     image: null,
     imagePreview: null
   });
@@ -60,6 +61,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
     formDataToSend.append('description', formData.description);
     formDataToSend.append('price', parseFloat(formData.price));
     formDataToSend.append('availability_status', formData.status === 'available' ? 1 : 0);
+    formDataToSend.append('quantity_available', parseInt(formData.quantity_available));
     
     if (formData.image) {
       formDataToSend.append('image', formData.image);
@@ -75,6 +77,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
       description: '',
       price: '',
       status: 'available',
+      quantity_available: 10,
       image: null,
       imagePreview: null
     });
@@ -151,6 +154,23 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
               className="w-full px-3 py-1.5 border-2 rounded-lg outline-none text-sm"
               style={{ borderColor: '#704214', color: '#704214' }}
               placeholder="0.00"
+              required
+            />
+          </div>
+
+          <div>
+            <label style={{ color: '#704214' }} className="block font-bold text-xs mb-1">
+              Available Quantity
+            </label>
+            <input
+              type="number"
+              name="quantity_available"
+              value={formData.quantity_available}
+              onChange={handleChange}
+              min="0"
+              className="w-full px-3 py-1.5 border-2 rounded-lg outline-none text-sm"
+              style={{ borderColor: '#704214', color: '#704214' }}
+              placeholder="10"
               required
             />
           </div>

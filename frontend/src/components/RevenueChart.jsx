@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import api from '../utils/api';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const RevenueChart = () => {
   const [data, setData] = useState([]);
@@ -72,23 +75,70 @@ const RevenueChart = () => {
           <p style={{ color: '#704214' }}>Loading chart...</p>
         </div>
       ) : data.length > 0 ? (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#FFD9B3" />
-            <XAxis dataKey="day" stroke="#704214" />
-            <YAxis stroke="#704214" />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#FFF5E6', border: '2px solid #704214', borderRadius: '8px' }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="revenue" 
-              stroke="#704214" 
-              strokeWidth={3}
-              dot={{ fill: '#704214', r: 5 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div style={{ position: 'relative', height: '300px' }}>
+          <Line
+            data={{
+              labels: data.map(d => d.day),
+              datasets: [
+                {
+                  label: 'Revenue',
+                  data: data.map(d => d.revenue),
+                  borderColor: '#704214',
+                  backgroundColor: 'rgba(112, 66, 20, 0.05)',
+                  borderWidth: 3,
+                  fill: true,
+                  pointBackgroundColor: '#704214',
+                  pointBorderColor: '#704214',
+                  pointRadius: 5,
+                  pointHoverRadius: 7,
+                  tension: 0.3,
+                },
+              ],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: {
+                    color: '#704214',
+                    font: { size: 12 },
+                    padding: 15,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: '#FFF5E6',
+                  titleColor: '#704214',
+                  bodyColor: '#704214',
+                  borderColor: '#704214',
+                  borderWidth: 2,
+                  padding: 10,
+                  callbacks: {
+                    label: (context) => `Revenue: ₱${context.parsed.y.toLocaleString()}`,
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: '#704214',
+                  },
+                  grid: {
+                    color: '#FFD9B3',
+                  },
+                },
+                y: {
+                  ticks: {
+                    color: '#704214',
+                  },
+                  grid: {
+                    color: '#FFD9B3',
+                  },
+                },
+              },
+            }}
+          />
+        </div>
       ) : (
         <div className="h-80 flex items-center justify-center">
           <p style={{ color: '#704214' }}>No data available</p>

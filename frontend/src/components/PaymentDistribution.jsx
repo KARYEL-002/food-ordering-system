@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie } from 'react-chartjs-2';
 import api from '../utils/api';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const PaymentDistribution = () => {
   const [data, setData] = useState([]);
@@ -42,12 +45,14 @@ const PaymentDistribution = () => {
           return { name: displayName, value };
         });
 
-      setData(chartData.length > 0 ? chartData : [
-        { name: 'No data', value: 1 }
-      ]);
+      if (chartData.length > 0) {
+        setData(chartData);
+      } else {
+        setData([]);
+      }
     } catch (error) {
       console.error('Failed to fetch payment distribution:', error);
-      setData([{ name: 'No data', value: 1 }]);
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -64,29 +69,51 @@ const PaymentDistribution = () => {
         <div className="h-64 flex items-center justify-center">
           <p style={{ color: '#704214' }}>Loading payment data...</p>
         </div>
-      ) : data.length > 0 && data[0].name !== 'No data' ? (
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#FFF5E6', border: '2px solid #704214', borderRadius: '8px' }}
-            />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+      ) : data.length > 0 ? (
+        <div style={{ position: 'relative', height: '250px' }}>
+          <Pie
+            data={{
+              labels: data.map(d => d.name),
+              datasets: [
+                {
+                  data: data.map(d => d.value),
+                  backgroundColor: COLORS.slice(0, data.length),
+                  borderColor: '#FFEFD5',
+                  borderWidth: 2,
+                },
+              ],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    color: '#704214',
+                    font: { size: 12 },
+                    padding: 15,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: '#FFF5E6',
+                  titleColor: '#704214',
+                  bodyColor: '#704214',
+                  borderColor: '#704214',
+                  borderWidth: 2,
+                  padding: 10,
+                  callbacks: {
+                    label: (context) => {
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const percentage = ((context.parsed / total) * 100).toFixed(0);
+                      return `${context.label}: ${context.parsed} (${percentage}%)`;
+                    },
+                  },
+                },
+              },
+            }}
+          />
+        </div>
       ) : (
         <div className="h-64 flex items-center justify-center">
           <p style={{ color: '#704214' }}>No payment data available</p>

@@ -53,6 +53,8 @@ class MenuItemController extends Controller
                 'price' => 'required|numeric|min:0',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'availability_status' => 'nullable|in:0,1,true,false',
+                'quantity_available' => 'nullable|integer|min:0',
+                'max_order_per_customer' => 'nullable|integer|min:1',
             ]);
 
             $imageUrl = null;
@@ -72,7 +74,9 @@ class MenuItemController extends Controller
                 $validated['price'],
                 $imageUrl,
                 $validated['category'] ?? null,
-                $availabilityStatus
+                $availabilityStatus,
+                $validated['quantity_available'] ?? 10,
+                $validated['max_order_per_customer'] ?? 10
             );
 
             return response()->json([
@@ -101,6 +105,8 @@ class MenuItemController extends Controller
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'image_url' => 'nullable|string',
                 'availability_status' => 'nullable|in:0,1,true,false',
+                'quantity_available' => 'nullable|integer|min:0',
+                'max_order_per_customer' => 'nullable|integer|min:1',
             ]);
 
             $item = $this->menuItemService->getMenuItemById($id);
@@ -127,7 +133,9 @@ class MenuItemController extends Controller
                 $validated['price'],
                 $imageUrl,
                 $validated['category'] ?? $item->category,
-                $availabilityStatus
+                $availabilityStatus,
+                $validated['quantity_available'] ?? $item->quantity_available,
+                $validated['max_order_per_customer'] ?? $item->max_order_per_customer
             );
 
             return response()->json([

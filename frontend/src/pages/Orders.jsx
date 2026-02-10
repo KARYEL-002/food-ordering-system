@@ -278,7 +278,7 @@ const Orders = () => {
             </div>
 
             {/* Footer */}
-            <div className="border-t p-2" style={{borderColor: '#E8DCC8'}}>
+            <div className="border-t p-2 space-y-2" style={{borderColor: '#E8DCC8'}}>
               <button
                 onClick={closeModal}
                 className="w-full py-2 rounded-lg font-bold text-white text-sm transition hover:opacity-90"

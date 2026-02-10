@@ -58,7 +58,8 @@ const Menu = () => {
         price: parseFloat(updatedItem.price), // Convert to number
         category: updatedItem.category || '',
         image_url: updatedItem.image_url || '',
-        availability_status: availabilityStatus
+        availability_status: availabilityStatus,
+        quantity_available: parseInt(updatedItem.quantity_available) || 10
       };
       
       console.log('Sending payload:', payload); // Debug log
@@ -120,6 +121,19 @@ const Menu = () => {
     }
     try {
       const existing = cart.find(ci => ci.id === item.id);
+      
+      // Check if item already exists and if adding more would exceed limit
+      if (existing) {
+        const maxOrderPerCustomer = item.max_order_per_customer || 10;
+        const maxAvailable = item.quantity_available || 10;
+        const maxAllowed = Math.min(maxOrderPerCustomer, maxAvailable);
+        
+        if (existing.quantity >= maxAllowed) {
+          toast.error(`Maximum ${maxAllowed} items per order (${maxAvailable} available). You already have ${existing.quantity} of this item.`);
+          return;
+        }
+      }
+
       let newCart = [];
       if (existing) {
         newCart = cart.map(ci => ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci);
@@ -311,6 +325,7 @@ const Menu = () => {
                 isAdmin={isAdmin}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                currentCartQuantity={cart.find(ci => ci.id === item.id)?.quantity || 0}
               />
             </div>
           ))}

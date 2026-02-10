@@ -25,7 +25,7 @@ class MenuItemService
         }
     }
 
-    public function createMenuItem($name, $description, $price, $imageUrl, $category = null, $availabilityStatus = true)
+    public function createMenuItem($name, $description, $price, $imageUrl, $category = null, $availabilityStatus = true, $quantityAvailable = 10, $maxOrderPerCustomer = 10)
     {
         if (!$name || !$price) {
             throw new \Exception('Name and price are required');
@@ -38,6 +38,8 @@ class MenuItemService
             'image_url' => $imageUrl,
             'category' => $category,
             'availability_status' => $availabilityStatus,
+            'quantity_available' => $quantityAvailable,
+            'max_order_per_customer' => $maxOrderPerCustomer,
         ]);
     }
 
@@ -55,21 +57,31 @@ class MenuItemService
         return $item;
     }
 
-    public function updateMenuItem($id, $name, $description, $price, $imageUrl, $category = null, $availabilityStatus = true)
+    public function updateMenuItem($id, $name, $description, $price, $imageUrl, $category = null, $availabilityStatus = true, $quantityAvailable = null, $maxOrderPerCustomer = null)
     {
         $item = MenuItem::find($id);
         if (!$item) {
             throw new \Exception('Menu item not found');
         }
 
-        $item->update([
+        $updateData = [
             'name' => $name,
             'description' => $description,
             'price' => $price,
             'image_url' => $imageUrl,
             'category' => $category,
             'availability_status' => $availabilityStatus,
-        ]);
+        ];
+
+        // Only update inventory fields if provided
+        if ($quantityAvailable !== null) {
+            $updateData['quantity_available'] = $quantityAvailable;
+        }
+        if ($maxOrderPerCustomer !== null) {
+            $updateData['max_order_per_customer'] = $maxOrderPerCustomer;
+        }
+
+        $item->update($updateData);
 
         return $item;
     }

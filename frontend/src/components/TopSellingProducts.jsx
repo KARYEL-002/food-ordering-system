@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 import api from '../utils/api';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const TopSellingProducts = () => {
   const [data, setData] = useState([]);
@@ -63,21 +66,66 @@ const TopSellingProducts = () => {
           <p style={{ color: '#704214' }}>Loading products...</p>
         </div>
       ) : data.length > 0 && data[0].name !== 'No data' ? (
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#FFD9B3" />
-            <XAxis dataKey="name" stroke="#704214" />
-            <YAxis stroke="#704214" />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#FFF5E6', border: '2px solid #704214', borderRadius: '8px' }}
-            />
-            <Bar 
-              dataKey="sales" 
-              fill="#C5A572"
-              radius={[8, 8, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ position: 'relative', height: '250px' }}>
+          <Bar
+            data={{
+              labels: data.map(d => d.name),
+              datasets: [
+                {
+                  label: 'Sales',
+                  data: data.map(d => d.sales),
+                  backgroundColor: '#C5A572',
+                  borderColor: '#704214',
+                  borderWidth: 1,
+                  borderRadius: 8,
+                },
+              ],
+            }}
+            options={{
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: {
+                    color: '#704214',
+                    font: { size: 12 },
+                    padding: 15,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: '#FFF5E6',
+                  titleColor: '#704214',
+                  bodyColor: '#704214',
+                  borderColor: '#704214',
+                  borderWidth: 2,
+                  padding: 10,
+                  callbacks: {
+                    label: (context) => `Sales: ${context.parsed.x}`,
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: '#704214',
+                  },
+                  grid: {
+                    color: '#FFD9B3',
+                  },
+                },
+                y: {
+                  ticks: {
+                    color: '#704214',
+                  },
+                  grid: {
+                    color: '#FFD9B3',
+                  },
+                },
+              },
+            }}
+          />
+        </div>
       ) : (
         <div className="h-64 flex items-center justify-center">
           <p style={{ color: '#704214' }}>No sales data available</p>

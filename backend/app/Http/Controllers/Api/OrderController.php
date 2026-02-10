@@ -157,4 +157,29 @@ class OrderController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
+
+    public function cancel(Request $request, $id)
+    {
+        try {
+            $order = \App\Models\Order::find($id);
+            if (!$order) {
+                return response()->json(['error' => 'Order not found'], 404);
+            }
+
+            // Authorization check: user can cancel their own order or admin can cancel any order
+            $isAdmin = $request->user()->role && $request->user()->role->name === 'Admin';
+            if (!$isAdmin && $order->user_id !== $request->user()->id) {
+                return response()->json(['error' => 'Not authorized to cancel this order'], 403);
+            }
+
+            $cancelledOrder = $this->orderService->cancelOrder($id);
+
+            return response()->json([
+                'message' => 'Order cancelled successfully',
+                'data' => $cancelledOrder->load('items.menuItem', 'details'),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
 }

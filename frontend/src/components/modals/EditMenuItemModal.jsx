@@ -7,7 +7,8 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
     description: '',
     price: '',
     image_url: '',
-    status: 'available'
+    status: 'available',
+    quantity_available: 10
   });
 
   useEffect(() => {
@@ -24,7 +25,8 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
         description: item.description || '',
         image_url: item.image_url || '',
         price: item.price ? parseFloat(item.price).toFixed(2) : '',
-        status: status
+        status: status,
+        quantity_available: item.quantity_available || 10
       });
     }
   }, [item]);
@@ -42,7 +44,8 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
     onConfirm({
       ...item,
       ...formData,
-      price: parseFloat(formData.price)
+      price: parseFloat(formData.price),
+      quantity_available: parseInt(formData.quantity_available)
     });
   };
 
@@ -87,6 +90,21 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
 
           <div>
             <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border-2 rounded-lg outline-none resize-none"
+              style={{ borderColor: '#704214', color: '#704214' }}
+              rows="3"
+              placeholder="Enter item description..."
+            />
+          </div>
+
+          <div>
+            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
               Price
             </label>
             <input
@@ -95,6 +113,22 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
               value={formData.price}
               onChange={handleChange}
               step="0.01"
+              className="w-full px-4 py-2 border-2 rounded-lg outline-none"
+              style={{ borderColor: '#704214', color: '#704214' }}
+              required
+            />
+          </div>
+
+          <div>
+            <label style={{ color: '#704214' }} className="block font-bold text-sm mb-2">
+              Available Quantity
+            </label>
+            <input
+              type="number"
+              name="quantity_available"
+              value={formData.quantity_available}
+              onChange={handleChange}
+              min="0"
               className="w-full px-4 py-2 border-2 rounded-lg outline-none"
               style={{ borderColor: '#704214', color: '#704214' }}
               required
