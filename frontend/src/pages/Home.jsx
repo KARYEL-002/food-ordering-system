@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import OptimizedImage from '../components/OptimizedImage';
 import { preloadImages, prefetchImages } from '../utils/imageLoader';
@@ -7,6 +7,7 @@ import adobo from '../assets/images/adobo.png';
 import bulalo from '../assets/images/sinigang.png';
 import kare from '../assets/images/karekare.png';
 const Home = () => {
+  const navigate = useNavigate();
   const [featuredItems, setFeaturedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +46,14 @@ const Home = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewMoreClick = () => {
+    navigate('/menu');
+    // Scroll to top after navigation
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 0);
   };
 
   return (
@@ -135,13 +144,13 @@ const Home = () => {
             </div>
 
             <div className="text-center">
-              <Link
-                to="/menu"
+              <button
+                onClick={handleViewMoreClick}
                 className="text-xl font-semibold text-gray-900 hover:text-amber-900 transition-colors"
                 style={{fontFamily: 'Montserrat, sans-serif'}}
               >
                 View More
-              </Link>
+              </button>
             </div>
           </>
         )}

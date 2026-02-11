@@ -14,7 +14,7 @@ const AdminTopBar = ({ onMenuClick }) => {
           <span className="hidden sm:inline">Back to Website</span>
         </button>
 
-        <button className="p-2 rounded-lg btn-hover scale-transition" style={{ backgroundColor: '#FFD9B3' }} onClick={onMenuClick}>
+        <button className="p-2 rounded-lg btn-hover scale-transition lg:hidden" style={{ backgroundColor: '#FFD9B3' }} onClick={onMenuClick}>
           <Menu className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: '#704214' }} />
         </button>
       </div>

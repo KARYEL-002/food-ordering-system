@@ -5,6 +5,7 @@ import { Trash2, Edit2 } from 'lucide-react';
 import api from '../../utils/api';
 import EditOrderModal from '../../components/modals/EditOrderModal';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal';
+import OrderPreviewModal from '../../components/modals/OrderPreviewModal';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
@@ -28,6 +29,7 @@ const OrdersManagement = () => {
   const [filterType, setFilterType] = useState('all');
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
+  const [previewOrder, setPreviewOrder] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -246,7 +248,8 @@ const OrdersManagement = () => {
                     {filteredOrders.map((order, index) => (
                       <tr
                         key={order.id}
-                        className="table-row-hover fade-transition"
+                        onClick={() => setPreviewOrder(order)}
+                        className="table-row-hover fade-transition cursor-pointer hover:bg-amber-50 transition-colors"
                         style={{
                           backgroundColor: index % 2 === 0 ? '#FFFDF1' : 'white',
                           borderBottom: '1px solid #f0f0f0'
@@ -285,7 +288,10 @@ const OrdersManagement = () => {
                         </td>
                         <td className="px-6 py-5 flex gap-2">
                           <button
-                            onClick={() => handleEdit(order)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(order);
+                            }}
                             className="px-3 py-1.5 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center gap-1 text-sm btn-hover scale-transition"
                             style={{ backgroundColor: '#00BCD4' }}
                           >
@@ -293,7 +299,10 @@ const OrdersManagement = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(order)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(order);
+                            }}
                             className="px-3 py-1.5 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center gap-1 text-sm btn-hover scale-transition"
                             style={{ backgroundColor: '#FF6B6B' }}
                           >
@@ -326,6 +335,12 @@ const OrdersManagement = () => {
         onConfirm={confirmDelete}
         onCancel={() => setDeletingOrder(null)}
         isLoading={isDeleting}
+      />
+
+      <OrderPreviewModal
+        isOpen={!!previewOrder}
+        order={previewOrder}
+        onClose={() => setPreviewOrder(null)}
       />
     </div>
   );

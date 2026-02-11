@@ -12,6 +12,7 @@ const CartPage = () => {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [editingQuantityId, setEditingQuantityId] = useState(null);
   const [quantityInput, setQuantityInput] = useState('');
+  const [showClearCartModal, setShowClearCartModal] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -28,6 +29,8 @@ const CartPage = () => {
     } else {
       localStorage.removeItem('cart');
     }
+    // Dispatch custom event to update cart count in navbar
+    window.dispatchEvent(new Event('cartUpdated'));
   }, [cartItems]);
 
   // Redirect admins away from cart page
@@ -92,6 +95,12 @@ const CartPage = () => {
   const removeFromCart = (itemId) => {
     setCartItems(cartItems.filter(item => item.id !== itemId));
     toast.success('Item removed from cart');
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
+    setShowClearCartModal(false);
+    toast.success('Cart cleared successfully');
   };
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -248,7 +257,7 @@ const CartPage = () => {
       </div>
 
       {/* Checkout Section */}
-      <div className="flex justify-center mt-4 sm:mt-6">
+      <div className="flex flex-col items-center mt-4 sm:mt-6">
         <button 
           onClick={handleCheckoutClick}
           disabled={isAdmin}
@@ -256,6 +265,21 @@ const CartPage = () => {
           style={{backgroundColor: '#704214', fontFamily: 'Montserrat, sans-serif'}}
         >
           {isAdmin ? 'Admins cannot checkout' : 'Checkout'}
+        </button>
+        
+        {/* Clear Cart Button */}
+        <button 
+          onClick={() => setShowClearCartModal(true)}
+          className="mt-3 text-xs sm:text-sm font-semibold hover:opacity-70 transition-all"
+          style={{
+            color: '#704214', 
+            fontFamily: 'Montserrat, sans-serif',
+            textDecoration: 'underline',
+            textDecorationThickness: '1.5px',
+            textUnderlineOffset: '4px'
+          }}
+        >
+          Clear your cart
         </button>
       </div>
 
@@ -309,6 +333,47 @@ const CartPage = () => {
               >
                 <MdLocalShipping size={24} className="sm:w-8 sm:h-8" style={{color: '#704214', marginBottom: '4px'}} />
                 <span className="text-xs font-bold uppercase" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif', letterSpacing: '0.05em'}}>Delivery</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Cart Confirmation Modal */}
+      {showClearCartModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-5 sm:p-6 md:p-8 max-w-xs sm:max-w-sm w-full border-2" style={{borderColor: '#D4C5B0'}}>
+            {/* Header with Close */}
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg md:text-xl font-bold" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>Clear Cart</h2>
+              <button
+                onClick={() => setShowClearCartModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Message */}
+            <p className="text-xs sm:text-sm md:text-base text-center mb-5 sm:mb-6 md:mb-8" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+              Clear your cart?
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 sm:gap-3">
+              <button
+                onClick={() => setShowClearCartModal(false)}
+                className="flex-1 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold rounded-lg border-2 hover:bg-gray-50 transition-all"
+                style={{color: '#704214', borderColor: '#704214', fontFamily: 'Montserrat, sans-serif'}}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearCart}
+                className="flex-1 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold rounded-lg text-white hover:opacity-90 transition-all"
+                style={{backgroundColor: '#dc2626', fontFamily: 'Montserrat, sans-serif'}}
+              >
+                Clear
               </button>
             </div>
           </div>

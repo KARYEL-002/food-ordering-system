@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderDetail;
 use App\Models\MenuItem;
+use App\Models\Payment;
 
 class OrderService
 {
@@ -37,6 +38,22 @@ class OrderService
             'payment_method' => $orderData['payment_method'] ?? 'cash',
             'payment_status' => $orderData['payment_status'] ?? 'pending',
         ]);
+
+        // Create payment record
+        $paymentData = [
+            'order_id' => $order->id,
+            'payment_method' => $orderData['payment_method'] ?? 'cash',
+            'amount' => $orderData['total_amount'] ?? 0,
+            'payment_status' => $orderData['payment_status'] ?? 'pending',
+            'payment_date' => now(),
+        ];
+
+        // Add transaction reference if provided (for GCash and online payments)
+        if (!empty($orderData['gcash_reference'])) {
+            $paymentData['transaction_reference'] = $orderData['gcash_reference'];
+        }
+
+        Payment::create($paymentData);
 
         // Add order items and decrease inventory
         foreach ($items as $item) {
@@ -77,7 +94,7 @@ class OrderService
 
     public function getOrderById($orderId)
     {
-        $order = Order::with('items.menuItem', 'details')->find($orderId);
+        $order = Order::with('items.menuItem', 'details', 'payment')->find($orderId);
         if (!$order) {
             throw new \Exception('Order not found');
         }
@@ -87,14 +104,14 @@ class OrderService
     public function getUserOrders($userId)
     {
         return Order::where('user_id', $userId)
-            ->with('items.menuItem', 'details')
+            ->with('items.menuItem', 'details', 'payment')
             ->orderByDesc('created_at')
             ->get();
     }
 
     public function getAllOrders()
     {
-        return Order::with('items.menuItem', 'user', 'details')->orderByDesc('created_at')->get();
+        return Order::with('items.menuItem', 'user', 'details', 'payment')->orderByDesc('created_at')->get();
     }
 
     public function updateOrderStatus($orderId, $status)

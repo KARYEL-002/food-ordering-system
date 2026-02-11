@@ -34,7 +34,7 @@ const Login = () => {
     if (lockoutData) {
       const { lockTime, attemptCount, lockLevel } = JSON.parse(lockoutData);
       const now = Date.now();
-      const lockDuration = lockLevel === 1 ? 3 * 60 * 1000 : 5 * 60 * 1000; // 3 or 5 minutes
+      const lockDuration = lockLevel === 1 ? 5 * 60 * 1000 : 10 * 60 * 1000; // 5 or 10 minutes
       const timeRemaining = lockTime + lockDuration - now;
 
       if (timeRemaining > 0) {
@@ -68,7 +68,7 @@ const Login = () => {
 
       const { lockTime, attemptCount, lockLevel } = JSON.parse(lockoutData);
       const now = Date.now();
-      const lockDuration = lockLevel === 1 ? 3 * 60 * 1000 : 5 * 60 * 1000;
+      const lockDuration = lockLevel === 1 ? 5 * 60 * 1000 : 10 * 60 * 1000; // 5 or 10 minutes
       const timeRemaining = lockTime + lockDuration - now;
 
       if (timeRemaining <= 0) {
@@ -97,35 +97,6 @@ const Login = () => {
     });
   };
 
-  const recordFailedAttempt = () => {
-    const lockoutData = localStorage.getItem('loginLockout');
-    let attemptCount = 1;
-    let lockLevel = 1; // Start with 3 minutes
-
-    if (lockoutData) {
-      const { attemptCount: prevCount } = JSON.parse(lockoutData);
-      attemptCount = prevCount + 1;
-      // After first lockout (3 mins), second lockout is 5 mins
-      lockLevel = attemptCount >= 2 ? 2 : 1;
-    }
-
-    const lockoutPayload = {
-      lockTime: Date.now(),
-      attemptCount,
-      lockLevel,
-    };
-
-    localStorage.setItem('loginLockout', JSON.stringify(lockoutPayload));
-    setIsLocked(true);
-    setLockoutInfo({
-      minutesRemaining: lockLevel === 1 ? 3 : 5,
-      secondsRemaining: 0,
-      attemptCount,
-      lockLevel,
-    });
-    setShowLockoutModal(true);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -134,7 +105,7 @@ const Login = () => {
     if (lockoutData) {
       const { lockTime, attemptCount, lockLevel } = JSON.parse(lockoutData);
       const now = Date.now();
-      const lockDuration = lockLevel === 1 ? 3 * 60 * 1000 : 5 * 60 * 1000;
+      const lockDuration = lockLevel === 1 ? 5 * 60 * 1000 : 10 * 60 * 1000; // 5 or 10 minutes
       const timeRemaining = lockTime + lockDuration - now;
 
       if (timeRemaining > 0) {
@@ -178,30 +149,34 @@ const Login = () => {
       
       // Handle different error types
       if (response?.type === 'account_locked') {
+        // Account is locked by backend after 3 failed attempts
+        const lockoutPayload = {
+          lockTime: Date.now(),
+          attemptCount: response.attemptCount || 3,
+          lockLevel: response.lockLevel || 1,
+        };
+
+        localStorage.setItem('loginLockout', JSON.stringify(lockoutPayload));
+        setIsLocked(true);
         setLockoutInfo({
           minutesRemaining: response.minutesRemaining || 5,
           secondsRemaining: response.secondsRemaining || 0,
-          attemptCount: response.attemptCount || 1,
-          lockLevel: response.lockLevel || 2,
+          attemptCount: response.attemptCount || 3,
+          lockLevel: response.lockLevel || 1,
         });
         setShowLockoutModal(true);
         toast.error('Account locked due to too many failed attempts');
       } else if (response?.type === 'wrong_credentials' || response?.error?.includes('Invalid credentials')) {
-        // Record failed attempt
-        recordFailedAttempt();
         const errorMsg = response?.error || 'Wrong credentials. Please try again.';
         setError(errorMsg);
-        toast.error('Invalid credentials. Account locked for security.');
+        toast.error(errorMsg);
       } else if (response?.error) {
-        // Record failed attempt for other errors too
-        recordFailedAttempt();
         setError(response.error);
         toast.error(response.error);
       } else {
-        recordFailedAttempt();
         const errorMsg = 'Login failed. Please check your email and password.';
         setError(errorMsg);
-        toast.error('Invalid credentials. Account locked for security.');
+        toast.error(errorMsg);
       }
       
       setLoading(false);
@@ -335,12 +310,12 @@ const Login = () => {
                 <p className="text-2xl font-bold text-yellow-700" style={{fontFamily: 'monospace'}}>
                   {String(lockoutInfo.minutesRemaining).padStart(2, '0')}:{String(lockoutInfo.secondsRemaining).padStart(2, '0')}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">({lockoutInfo.lockLevel === 1 ? '3 min' : '5 min'} lock)</p>
+                <p className="text-xs text-gray-500 mt-1">({lockoutInfo.lockLevel === 1 ? '5 min' : '10 min'} lock)</p>
               </div>
 
               {lockoutInfo.lockLevel === 1 && (
                 <p className="text-xs text-amber-600 mb-4">
-                  Next attempt: 5 minute lock
+                  Next attempt: 10 minute lock
                 </p>
               )}
 

@@ -51,9 +51,13 @@ export const AuthProvider = ({ children }) => {
         throw new Error('No token received from server');
       }
       
+      // Clear cart from previous user session
+      localStorage.removeItem('cart');
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      // Dispatch event to update navbar cart count
+      window.dispatchEvent(new Event('cartUpdated'));
       return userData;
     } catch (error) {
       console.error('Login error in AuthContext:', error.response?.data);
@@ -72,16 +76,23 @@ export const AuthProvider = ({ children }) => {
       role: data.role,
     };
     
+    // Clear cart from previous session
+    localStorage.removeItem('cart');
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     setUser(user);
+    // Dispatch event to update navbar cart count
+    window.dispatchEvent(new Event('cartUpdated'));
     return user;
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('cart');
     setUser(null);
+    // Dispatch event to update navbar cart count
+    window.dispatchEvent(new Event('cartUpdated'));
   };
 
   const value = {

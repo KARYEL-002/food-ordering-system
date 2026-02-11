@@ -9,7 +9,31 @@ const Navbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const dropdownRef = useRef(null);
+
+  // Update cart count from localStorage
+  const updateCartCount = () => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      const cart = JSON.parse(savedCart);
+      setCartCount(cart.length);
+    } else {
+      setCartCount(0);
+    }
+  };
+
+  // Load cart count on mount and listen for storage changes
+  useEffect(() => {
+    updateCartCount();
+    window.addEventListener('storage', updateCartCount);
+    // Also listen for custom cart update event
+    window.addEventListener('cartUpdated', updateCartCount);
+    return () => {
+      window.removeEventListener('storage', updateCartCount);
+      window.removeEventListener('cartUpdated', updateCartCount);
+    };
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -35,11 +59,11 @@ const Navbar = () => {
 
   if (loading) {
     return (
-      <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-3 sm:py-4">
+      <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-2 sm:py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
-              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-16 sm:h-20 md:h-28 w-auto" />
+              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-12 sm:h-14 md:h-16 w-auto" />
             </Link>
           </div>
         </div>
@@ -48,13 +72,13 @@ const Navbar = () => {
   }
 
   return (
-    <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-3 sm:py-4 sticky top-0 z-40 shadow-sm">
+    <nav style={{backgroundColor: '#FFFDF1', fontFamily: 'Montserrat, sans-serif'}} className="py-2 sm:py-2 sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div>
             <Link to="/" className="flex items-center">
-              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-16 sm:h-20 md:h-28 w-auto" />
+              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-12 sm:h-14 md:h-16 w-auto" />
             </Link>
           </div>
 
@@ -94,10 +118,15 @@ const Navbar = () => {
                 }
                 navigate('/cart');
               }}
-              className="text-amber-900 hover:text-amber-700 transition-colors"
+              className="text-amber-900 hover:text-amber-700 transition-colors relative"
               aria-label="Cart"
             >
               <MdShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </button>
 
             {/* Account Dropdown */}
@@ -165,20 +194,33 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-3">
-            {/* Cart Icon Mobile */}
-            <button
-              onClick={() => {
-                if (isAdmin) {
-                  setShowAdminModal(true);
-                  return;
-                }
-                navigate('/cart');
-              }}
-              className="text-amber-900 hover:text-amber-700 transition-colors"
-              aria-label="Cart"
-            >
-              <MdShoppingCart className="w-5 h-5" />
-            </button>
+            {/* Welcome Message and Cart Icon */}
+            <div className="flex items-center gap-2">
+              {isAuthenticated && user && (
+                <span className="text-xs sm:text-sm font-bold text-gray-800">
+                  Welcome, {user.name.split(' ')[0]}
+                </span>
+              )}
+              {/* Cart Icon Mobile */}
+              <button
+                onClick={() => {
+                  if (isAdmin) {
+                    setShowAdminModal(true);
+                    return;
+                  }
+                  navigate('/cart');
+                }}
+                className="text-amber-900 hover:text-amber-700 transition-colors relative"
+                aria-label="Cart"
+              >
+                <MdShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
 
             {/* Hamburger Menu */}
             <button
@@ -215,9 +257,6 @@ const Navbar = () => {
               </Link>
               {isAuthenticated && user ? (
                 <>
-                  <div className="px-4 py-2 text-gray-800 font-bold">
-                    Welcome, {user.name.split(' ')[0]}
-                  </div>
                   {(user.role === 'customer' || user.role === 'Customer') && (
                     <Link
                       to="/orders"

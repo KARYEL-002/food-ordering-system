@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
 import AdminTopBar from '../../components/AdminTopBar';
-import { Trash2, Edit2, Search } from 'lucide-react';
+import { Edit2, Search } from 'lucide-react';
 import api from '../../utils/api';
 import EditPaymentModal from '../../components/modals/EditPaymentModal';
-import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal';
+import PaymentPreviewModal from '../../components/modals/PaymentPreviewModal';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
@@ -28,9 +28,8 @@ const PaymentsManagement = () => {
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPayment, setEditingPayment] = useState(null);
-  const [deletingPayment, setDeletingPayment] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [previewingPayment, setPreviewingPayment] = useState(null);
 
   useEffect(() => {
     fetchPayments();
@@ -47,26 +46,6 @@ const PaymentsManagement = () => {
       setOrders([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDelete = (payment) => {
-    setDeletingPayment(payment);
-  };
-
-  const confirmDelete = async () => {
-    if (!deletingPayment) return;
-    try {
-      setIsDeleting(true);
-      await api.delete(`/orders/${deletingPayment.id}`);
-      setOrders(orders.filter(order => order.id !== deletingPayment.id));
-      setDeletingPayment(null);
-      // Hot reload - fetch fresh data
-      setTimeout(() => fetchPayments(), 300);
-    } catch (err) {
-      alert('Failed to delete payment');
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -278,11 +257,12 @@ const PaymentsManagement = () => {
                     {filteredPayments.map((order, index) => (
                       <tr
                         key={order.id}
-                        className="table-row-hover fade-transition"
+                        className="table-row-hover fade-transition cursor-pointer transition-colors hover:bg-blue-50"
                         style={{
                           backgroundColor: index % 2 === 0 ? '#FFFDF1' : 'white',
                           borderBottom: '1px solid #f0f0f0'
                         }}
+                        onClick={() => setPreviewingPayment(order)}
                       >
                         <td className="px-6 py-5" style={{ color: '#704214' }}>
                           <p className="font-semibold text-base">#{String(order.id).padStart(4, '0')}</p>
@@ -312,7 +292,7 @@ const PaymentsManagement = () => {
                             {order.payment_status === 'paid' ? 'Paid' : 'Pending'}
                           </span>
                         </td>
-                        <td className="px-6 py-5 flex gap-2">
+                        <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleEdit(order)}
                             className="px-3 py-1.5 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center gap-1 text-sm btn-hover scale-transition"
@@ -320,14 +300,6 @@ const PaymentsManagement = () => {
                           >
                             <Edit2 size={16} />
                             Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(order)}
-                            className="px-3 py-1.5 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center gap-1 text-sm btn-hover scale-transition"
-                            style={{ backgroundColor: '#FF6B6B' }}
-                          >
-                            <Trash2 size={16} />
-                            Delete
                           </button>
                         </td>
                       </tr>
@@ -340,6 +312,16 @@ const PaymentsManagement = () => {
         </div>
       </div>
 
+      <PaymentPreviewModal
+        isOpen={!!previewingPayment}
+        payment={previewingPayment}
+        onClose={() => setPreviewingPayment(null)}
+        onEdit={() => {
+          setEditingPayment(previewingPayment);
+          setPreviewingPayment(null);
+        }}
+      />
+
       <EditPaymentModal
         isOpen={!!editingPayment}
         payment={editingPayment}
@@ -348,14 +330,6 @@ const PaymentsManagement = () => {
         isLoading={isEditing}
       />
 
-      <ConfirmDeleteModal
-        isOpen={!!deletingPayment}
-        title="Delete Payment"
-        message={`Are you sure you want to delete payment for order #${String(deletingPayment?.id).padStart(4, '0')}? This action cannot be undone.`}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeletingPayment(null)}
-        isLoading={isDeleting}
-      />
     </div>
   );
 };

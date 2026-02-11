@@ -26,8 +26,7 @@ frontend/
 │   │   ├── admin/
 │   │   │   ├── AdminMenu.jsx   # Admin menu management
 │   │   │   └── AdminOrders.jsx # Admin order management
-│   │   └── chef/
-│   │       └── ChefOrders.jsx  # Chef kitchen dashboard
+│   │      
 │   ├── utils/
 │   │   ├── api.js              # Axios API client with interceptors
 │   │   └── helpers.js          # Utility functions
@@ -80,10 +79,6 @@ npm run preview
 - Update order statuses
 - Manage availability
 
-### 👨‍🍳 Chef Features
-- View active kitchen orders
-- Update preparation status
-- Real-time order monitoring
 
 ## Key Technologies
 
@@ -133,7 +128,6 @@ You'll need to create users with different roles in your backend:
 
 - **Customer**: Can browse menu and place orders
 - **Admin**: Can manage menu items and all orders
-- **Chef**: Can view and update kitchen orders
 
 ## Environment Variables (Optional)
 

@@ -11,6 +11,8 @@ class OrderDetail extends Model
     protected $fillable = [
         'order_id',
         'delivery_type',
+        'customer_name',
+        'customer_phone',
         'order_date',
         'order_time',
         'estimated_delivery_time',

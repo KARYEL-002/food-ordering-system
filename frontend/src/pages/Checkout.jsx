@@ -241,6 +241,8 @@ const CheckoutPage = () => {
         })),
         order_detail: {
           delivery_type: deliveryType,
+          customer_name: formData.customerName,
+          customer_phone: formData.customerPhone,
           order_date: formData.orderDate,
           order_time: formData.orderTime,
           delivery_address: deliveryType === 'delivery' ? formData.deliveryAddress : null,

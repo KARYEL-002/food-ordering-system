@@ -6,14 +6,14 @@
 ---
 
 ## Summary
-- **Total Tests:** 116
-- **Passing Tests:** 53 (46%)
-- **Failing Tests:** 63 (54%)
+- **Total Tests:** 119
+- **Passing Tests:** 56 (47%)
+- **Failing Tests:** 63 (53%)
 
 
 ---
 
-## 1. Functional Tests - PASSING (10 tests)
+## 1. Functional Tests - PASSING (13 tests)
 
 | Test Case ID | Title | Module / Feature | Test Case Description | Pre-Conditions | Test Steps | Test Data | Expected Result | Actual Result | Status (Pass/Fail) | Severity | Priority | Tester Name | Test Date | Remarks / Defects ID | Image |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -27,6 +27,9 @@
 | FUN008 | Admin Dashboard Access | Admin Panel → Dashboard | Admin can access management dashboard | Admin user logged in | 1. Log in with admin account; 2. Navigate to /admin | Admin: "admin@example.com", Password: "AdminPass123!" | Dashboard loads; all options accessible | Dashboard displays all admin functions | Pass | Minor | High | QA Team | 2026-02-09 | Admin access working | ✓ |
 | FUN009 | Admin Add Menu Item | Menu Management → Add | Admin can add new menu items | Admin logged in; on Menu page | 1. Click "Add New Item"; 2. Enter details; 3. Save | Name: "Grilled Cheese", Price: $5.99, Category: "Sandwiches" | Item added; visible to customers within 5 min | Item added; visible to customers | Pass | Minor | High | QA Team | 2026-02-09 | Menu item creation working | ✓ |
 | FUN010 | View Order Details | Order Management → Details | System displays complete order information | User logged in; order exists (1001) | 1. Go to Order History; 2. Click Order #1001; 3. Expand | Order ID: 1001, Items: 3, Total: $24.97 | All details shown (items, qty, price, tax, status) | All order details shown correctly | Pass | Minor | Medium | QA Team | 2026-02-09 | Order details working | ✓ |
+| FUN011 | View Payment Details Modal | Payment Management → Preview | Admin can view detailed payment information in modal popup | Admin logged in; payment exists (#0019) | 1. Go to Payments; 2. Click on payment row; 3. Modal opens | Payment ID: #0019, Method: Cash, Amount: ₱4928.00 | Modal displays all payment details (ID, method, amount, status, date); can read information | Modal opens; shows Order ID, Payment Method, Amount, Status, Payment Date, transaction details | Pass | Minor | High | QA Team | 2026-02-11 | Payment modal working | ✓ |
+| FUN012 | Close Payment Modal | Payment Management → Modal | Admin can close the payment details modal | Payment modal is open; viewing #0019 details | 1. Modal is open; 2. Click X button or outside modal; 3. Modal closes | Modal open with payment #0019 | Modal closes smoothly; returns to payments table; data remains intact | Modal closed; payments table still visible | Pass | Minor | Medium | QA Team | 2026-02-11 | Modal close working | ✓ |
+| FUN013 | Edit Payment from Modal Click | Payment Management → Edit | Admin can click Edit button in modal to edit payment status | Admin logged in; payment modal open (#0019) | 1. Payment modal open; 2. Click "Edit" button in modal; 3. Edit form loads | Payment ID: #0019, Current Status: Pending | Edit form loads with payment data pre-filled; can change status and save | Edit form opened; status field editable; changes applied | Pass | Minor | High | QA Team | 2026-02-11 | Modal edit button working | ✓ |
 
 ---
 
@@ -182,7 +185,7 @@
 | Test Case ID | Title | Module / Feature | Test Case Description | Pre-Conditions | Test Steps | Test Data | Expected Result | Actual Result | Status (Pass/Fail) | Severity | Priority | Tester Name | Test Date | Remarks / Defects ID | Image |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | FE001 | Register Form - Full Validation | Frontend → Register | All registration fields validate with live error messages | Register page accessible; no logged-in user | 1. Enter invalid name (2 chars); 2. Invalid email; 3. Phone validation; 4. Password mismatch; 5. Correct all | Name: "Jo", Email: "test", Phone: "123", Pass: "Pass123!", Confirm: "Pass456" | Real-time errors for each field; form blocks invalid submission; accepts valid data | Validation working correctly | Pass | Minor | High | Frontend QA | 2026-02-10 | Form validation accurate | ✓ |
-| FE002 | Menu Search and Filter | Frontend → Menu | Users can search items by name and filter by category | Menu page loaded; 20+ items exist | 1. Search "burger"; 2. Filter by "Sandwiches"; 3. Search within filtered; 4. Reset filters | Search: "burger", Category: "Sandwiches" | Search returns 8 burger items; filter narrows to 3; reset shows all again | Search/filter working | Pass | Minor | High | Frontend QA | 2026-02-10 | Menu features operational | ✓ |
+| FE002 | Menu Search and Filter | Frontend → Menu | Users can search items by name and filter by category | Menu page loaded; 20+ items exist | 1. Search "burger"; 2. Filter by "Sandwiches"; 3. Search within filtered; 4. Reset filters | Search: "burger", Category: "Sandwiches" | Search returns 8 burger items; filter narrows to 3; reset shows all again | Search/filter working | Pass | Minor | High | Frontend QA | 2026-02-10 | Menu features opephp artisan migraterational | ✓ |
 | FE003 | Menu Sort by Price | Frontend → Menu | Items sort correctly by price (ascending/descending) | Menu page with 15+ items | 1. Select sort "Price: Low to High"; 2. Verify order; 3. Switch to "Price: High to Low"; 4. Verify reverse | Items sorted in correct price order | Items display $2.99, $5.99, $8.99, $12.99, etc. | Order correct both ways | Pass | Minor | Medium | Frontend QA | 2026-02-10 | Sort feature correct | ✓ |
 | FE004 | Checkout Form with GCash QR Code | Frontend → Checkout | Checkout shows order details, GCash QR, and accepts payment reference | Cart filled with items; logged-in user | 1. Add items; 2. Go to checkout; 3. Fill form (name, phone, address); 4. Select GCash; 5. View QR code; 6. Enter reference; 7. Submit | Items total: $24.99, Phone: "09123456789", Address: "123 Main St", GCash Ref: "ABC123456" | Form prefills user name; QR displays; accepts reference; order created | Checkout working end-to-end | Pass | Minor | High | Frontend QA | 2026-02-10 | Checkout flow complete | ✓ |
 | FE005 | Protected Routes - Redirect to Login | Frontend → Authentication | Unauthenticated users redirected to login from protected pages | No token in localStorage; app fresh | 1. Try /dashboard (no token); 2. Try /checkout (no token); 3. Try /orders (no token) | Routes: /dashboard, /checkout, /orders | All redirect to /login; login required message shown | Route protection working | Pass | Minor | High | Frontend QA | 2026-02-10 | Protected routes enforced | ✓ |

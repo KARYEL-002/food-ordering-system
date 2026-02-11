@@ -142,6 +142,8 @@ const Menu = () => {
       }
       setCart(newCart);
       localStorage.setItem('cart', JSON.stringify(newCart));
+      // Dispatch custom event to update cart count in navbar
+      window.dispatchEvent(new Event('cartUpdated'));
       toast.success(`${item.name} added to cart`);
     } catch (e) {
       console.error('addToCart error', e);
