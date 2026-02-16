@@ -26,7 +26,8 @@ const CheckoutPage = () => {
     customerPhone: '',
     orderDate: new Date().toISOString().split('T')[0],
     orderTime: '12:00',
-    deliveryAddress: ''
+    deliveryAddress: '',
+    deliveryService: 'standard'
   });
 
   // Validation errors state
@@ -36,9 +37,18 @@ const CheckoutPage = () => {
     orderDate: '',
     orderTime: '',
     deliveryAddress: '',
+    deliveryService: '',
     paymentMethod: '',
     gcashReference: ''
   });
+
+  // Delivery service tiers
+  const deliveryServices = [
+    { id: 'saver', label: 'Saver', fee: 50, time: '1 hour' },
+    { id: 'standard', label: 'Standard', fee: 100, time: '30-45 min' },
+    { id: 'priority', label: 'Priority', fee: 150, time: '5-15 min' }
+  ];
+
 
   // Auto-fill customer name from logged-in user
   useEffect(() => {
@@ -133,6 +143,13 @@ const CheckoutPage = () => {
     return '';
   };
 
+  const validateDeliveryService = (service) => {
+    if (!service) {
+      return 'Please select a delivery service';
+    }
+    return '';
+  };
+
   const validateGcashReference = (reference) => {
     const ref = reference.trim();
     if (!ref) {
@@ -176,6 +193,7 @@ const CheckoutPage = () => {
       orderDate: validateDate(formData.orderDate),
       orderTime: validateTime(formData.orderTime),
       deliveryAddress: validateDeliveryAddress(formData.deliveryAddress),
+      deliveryService: deliveryType === 'delivery' ? validateDeliveryService(formData.deliveryService) : '',
       paymentMethod: !paymentMethod ? 'Payment method is required' : '',
       gcashReference: paymentMethod === 'gcash' ? validateGcashReference(gcashReference) : ''
     };
@@ -194,6 +212,7 @@ const CheckoutPage = () => {
     if (validateDate(formData.orderDate)) return false;
     if (validateTime(formData.orderTime)) return false;
     if (validateDeliveryAddress(formData.deliveryAddress)) return false;
+    if (deliveryType === 'delivery' && validateDeliveryService(formData.deliveryService)) return false;
     if (paymentMethod === 'gcash') {
       const gErr = validateGcashReference(gcashReference);
       if (gErr) return false;
@@ -223,13 +242,11 @@ const CheckoutPage = () => {
 
     setIsProcessing(true);
     try {
-      const subtotal = total;
-      const taxAmount = Math.round(subtotal * 0.10 * 100) / 100; // 10% tax
-      const totalAmount = subtotal + taxAmount;
+      const selectedService = deliveryServices.find(s => s.id === formData.deliveryService);
+      const deliveryFee = (deliveryType === 'delivery' && selectedService) ? selectedService.fee : 0;
+      const totalAmount = total + deliveryFee;
 
       const orderData = {
-        subtotal: subtotal,
-        tax_amount: taxAmount,
         total_amount: totalAmount,
         payment_method: paymentMethod,
         status: 'pending',
@@ -246,6 +263,8 @@ const CheckoutPage = () => {
           order_date: formData.orderDate,
           order_time: formData.orderTime,
           delivery_address: deliveryType === 'delivery' ? formData.deliveryAddress : null,
+          delivery_service: deliveryType === 'delivery' ? formData.deliveryService : null,
+          delivery_fee: deliveryFee
         },
         ...(paymentMethod === 'gcash' && { gcash_reference: gcashReference })
       };
@@ -554,53 +573,60 @@ const CheckoutPage = () => {
               )}
             </div>
 
-            {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
-              <div>
-                <label className="block text-xs font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
-                  Date <span style={{color: '#dc2626'}}>*</span>
+            {/* Date & Time - Only for Dine In and Pickup */}
+            {deliveryType !== 'delivery' && (
+              <>
+                <label className="block text-xs sm:text-sm font-semibold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                  Choose your preferred time and date of dining in
                 </label>
-                <input
-                  type="date"
-                  name="orderDate"
-                  value={formData.orderDate}
-                  min={new Date().toISOString().split('T')[0]}
-                  onChange={handleInputChange}
-                  className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
-                  style={{
-                    borderColor: errors.orderDate ? '#dc2626' : '#704214',
-                    backgroundColor: errors.orderDate ? '#fee2e2' : '#FFFDF1',
-                    color: '#704214',
-                    fontFamily: 'Montserrat, sans-serif'
-                  }}
-                />
-                {errors.orderDate && (
-                  <p className="text-xs text-red-600 mt-1 font-semibold">{errors.orderDate}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
-                  Time <span style={{color: '#dc2626'}}>*</span>
-                </label>
-                <input
-                  type="time"
-                  name="orderTime"
-                  value={formData.orderTime}
-                  min={getMinTimeForDate(formData.orderDate)}
-                  onChange={handleInputChange}
-                  className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
-                  style={{
-                    borderColor: errors.orderTime ? '#dc2626' : '#704214',
-                    backgroundColor: errors.orderTime ? '#fee2e2' : '#FFFDF1',
-                    color: '#704214',
-                    fontFamily: 'Montserrat, sans-serif'
-                  }}
-                />
-                {errors.orderTime && (
-                  <p className="text-xs text-red-600 mt-1 font-semibold">{errors.orderTime}</p>
-                )}
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                      Date <span style={{color: '#dc2626'}}>*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="orderDate"
+                      value={formData.orderDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
+                      style={{
+                        borderColor: errors.orderDate ? '#dc2626' : '#704214',
+                        backgroundColor: errors.orderDate ? '#fee2e2' : '#FFFDF1',
+                        color: '#704214',
+                        fontFamily: 'Montserrat, sans-serif'
+                      }}
+                    />
+                    {errors.orderDate && (
+                      <p className="text-xs text-red-600 mt-1 font-semibold">{errors.orderDate}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                      Time <span style={{color: '#dc2626'}}>*</span>
+                    </label>
+                    <input
+                      type="time"
+                      name="orderTime"
+                      value={formData.orderTime}
+                      min={getMinTimeForDate(formData.orderDate)}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
+                      style={{
+                        borderColor: errors.orderTime ? '#dc2626' : '#704214',
+                        backgroundColor: errors.orderTime ? '#fee2e2' : '#FFFDF1',
+                        color: '#704214',
+                        fontFamily: 'Montserrat, sans-serif'
+                      }}
+                    />
+                    {errors.orderTime && (
+                      <p className="text-xs text-red-600 mt-1 font-semibold">{errors.orderTime}</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Delivery specific */}
             {deliveryType === 'delivery' && (
@@ -628,6 +654,46 @@ const CheckoutPage = () => {
               </>
             )}
           </div>
+
+          {/* Delivery Service Section - Only show for delivery type */}
+          {deliveryType === 'delivery' && (
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-4 sm:p-6 border-2 transition-colors mb-4" style={{
+              borderColor: errors.deliveryService ? '#dc2626' : '#E8DCC8',
+              backgroundColor: errors.deliveryService ? '#fee2e2' : '#FFFDF1'
+            }}>
+              <h2 className="text-sm sm:text-base font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                Delivery Service <span style={{color: '#dc2626'}}>*</span>
+              </h2>
+              <p className="text-gray-600 mb-4 text-xs" style={{fontFamily: 'Montserrat, sans-serif'}}>
+                Select your preferred service level
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {deliveryServices.map((service) => (
+                  <button
+                    key={service.id}
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({...prev, deliveryService: service.id}));
+                      setErrors(prev => ({...prev, deliveryService: ''}));
+                    }}
+                    className="p-3 rounded-lg border-2 text-left transition-all"
+                    style={{
+                      borderColor: formData.deliveryService === service.id ? '#704214' : '#D4C5B0',
+                      backgroundColor: formData.deliveryService === service.id ? '#F5EBE0' : '#FFFDF1',
+                    }}
+                  >
+                    <p className="font-bold text-xs sm:text-sm" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                      {service.label}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">₱{service.fee} • {service.time}</p>
+                  </button>
+                ))}
+              </div>
+              {errors.deliveryService && (
+                <p className="text-xs text-red-600 mt-2 font-semibold">{errors.deliveryService}</p>
+              )}
+            </div>
+          )}
 
           {/* Payment Method Section */}
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-4 sm:p-6 border-2 transition-colors" style={{
@@ -831,10 +897,19 @@ const CheckoutPage = () => {
             </div>
 
             <div className="border-t-2 pt-2" style={{borderColor: '#D4C5B0'}}>
-              <div className="flex justify-between font-bold text-xs sm:text-sm">
+              {deliveryType === 'delivery' && (
+                <div className="flex justify-between text-xs sm:text-sm">
+                  <span style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>Delivery Fee</span>
+                  <span style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                    {formatCurrency(deliveryServices.find(s => s.id === formData.deliveryService)?.fee || 0)}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between font-bold text-xs sm:text-sm mt-2">
                 <span style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>Total</span>
                 <span style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
-                  {formatCurrency(total)}
+                  {formatCurrency(total + (deliveryType === 'delivery' ? (deliveryServices.find(s => s.id === formData.deliveryService)?.fee || 0) : 0))}
                 </span>
               </div>
             </div>

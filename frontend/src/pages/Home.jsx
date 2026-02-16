@@ -119,8 +119,8 @@ const Home = () => {
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                       <div className="w-full h-full rounded-full overflow-hidden shadow-lg border-4 border-orange-200">
                         <OptimizedImage
-                            src={index === 0 ? adobo : index === 1 ? bulalo : kare}
-                            alt={index === 0 ? 'Adobo' : index === 1 ? 'Sinigang' : 'Kare-Kare'}
+                            src={item.image_url}
+                            alt={item.name}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 p-2 rounded-full"
                           />
                       </div>
@@ -129,12 +129,10 @@ const Home = () => {
                     <div style={{backgroundColor: '#ffce99'}} className="rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] pt-16 sm:pt-24 md:pt-36 pb-6 sm:pb-8 md:pb-10 px-4 sm:px-6 md:px-10 min-h-[300px] sm:min-h-[350px] md:min-h-[420px] transition-all duration-300 hover:shadow-2xl flex flex-col">
                       <div className="mb-4 sm:mb-6">
                         <div className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3" style={{fontFamily: 'Montserrat, sans-serif'}}>
-                          {index === 0 ? 'Adobo' : index === 1 ? 'Sinigang' : 'Kare-Kare'}
+                          {item.name}
                         </div>
                         <p className="text-xs sm:text-sm text-gray-800 leading-relaxed">
-                          {index === 0 && 'Adobo is a classic Filipino dish made with chicken or pork slowly simmered in a savory blend of soy sauce, vinegar, garlic, bay leaves, and peppercorns. Its rich, tangy, and slightly salty flavor makes it one of the most iconic and well-loved dishes in Filipino cuisine, best served with steamed rice.'}
-                          {index === 1 && 'Sinigang is a popular Filipino sour soup consisting of braised meat or seafood in a savory tamarind-based broth. When mixed with vegetables such as kangkong, radish, and eggplant, it provides a comforting contrast of flavors that are best served hot over a plate of steamed rice.'}
-                          {index === 2 && 'Kare-Kare is a traditional Filipino stew known for its rich and creamy peanut-based sauce. Made with tender oxtail, tripe, or pork and simmered with vegetables like eggplant, string beans, and banana blossoms, it\'s best enjoyed with bagoong (shrimp paste) to enhance its deep, savory flavor.'}
+                          {item.description || 'Delicious Filipino dish'}
                         </p>
                       </div>
                     </div>

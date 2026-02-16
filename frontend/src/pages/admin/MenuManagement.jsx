@@ -6,6 +6,8 @@ import api from '../../utils/api';
 import EditMenuItemModal from '../../components/modals/EditMenuItemModal';
 import AddMenuItemModal from '../../components/modals/AddMenuItemModal';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal';
+import toast from 'react-hot-toast';
+import Pagination from '../../components/Pagination';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
@@ -25,6 +27,9 @@ const MenuManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
@@ -42,7 +47,11 @@ const MenuManagement = () => {
     try {
       setLoading(true);
       const response = await api.get('/menu-items');
-      setMenuItems(response.data.data || []);
+      const items = response.data.data || [];
+      setMenuItems(items);
+      // Extract categories for filter dropdown
+      const cats = Array.from(new Set((items || []).map(i => i.category).filter(Boolean)));
+      setCategories(cats);
       setError(null);
     } catch (err) {
       setError('Failed to load menu items');
@@ -61,12 +70,13 @@ const MenuManagement = () => {
     try {
       setIsDeleting(true);
       await api.delete(`/menu-items/${deletingItem.id}`);
+      toast.success('Menu item deleted successfully');
       setMenuItems(menuItems.filter(item => item.id !== deletingItem.id));
       setDeletingItem(null);
       // Hot reload - fetch fresh data
       setTimeout(() => fetchMenuItems(), 300);
     } catch (err) {
-      alert('Failed to delete menu item');
+      toast.error(err.response?.data?.error || 'Failed to delete menu item');
     } finally {
       setIsDeleting(false);
     }
@@ -85,6 +95,7 @@ const MenuManagement = () => {
         availability_status = '0';
       }
       
+      const qtyParsed = parseInt(updatedItem.quantity_available, 10);
       const payload = {
         name: updatedItem.name,
         category: updatedItem.category || '',
@@ -92,22 +103,39 @@ const MenuManagement = () => {
         price: parseFloat(updatedItem.price), // Convert to number
         image_url: updatedItem.image_url || '',
         availability_status: availability_status,
-        quantity_available: parseInt(updatedItem.quantity_available) || 10
+        // Preserve explicit 0 quantity; fallback to 10 only when parse fails
+        quantity_available: isNaN(qtyParsed) ? 10 : qtyParsed
       };
       
       console.log('Sending payload:', payload); // Debug log
       
       await api.put(`/menu-items/${updatedItem.id}`, payload);
+      toast.success('Menu item updated successfully');
       setMenuItems(menuItems.map(item => item.id === updatedItem.id ? updatedItem : item));
       setEditingItem(null);
       // Hot reload - fetch fresh data
       setTimeout(() => fetchMenuItems(), 300);
     } catch (err) {
       console.error('Edit error details:', err.response?.data);
-      const errorMsg = err.response?.data?.details 
-        ? Object.entries(err.response.data.details).map(([key, val]) => `${key}: ${val}`).join(', ')
-        : 'Failed to update menu item';
-      alert(errorMsg);
+      let errorMessage = 'Failed to update menu item';
+      
+      if (err.response?.data?.details?.name) {
+        const nameErrors = err.response.data.details.name;
+        if (nameErrors.some(e => e.includes('unique') || e.includes('already'))) {
+          errorMessage = 'This menu item name already exists. Please use a different name.';
+        } else {
+          errorMessage = 'Name: ' + nameErrors.join(', ');
+        }
+      } else if (err.response?.data?.details) {
+        const details = err.response.data.details;
+        errorMessage = Object.entries(details)
+          .map(([key, messages]) => `${key}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('; ');
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsEditing(false);
     }
@@ -117,6 +145,7 @@ const MenuManagement = () => {
     try {
       setIsAdding(true);
       await api.post('/menu-items', formData);
+      toast.success('Menu item added successfully');
       setIsAddingItem(false);
       // Hot reload - fetch fresh data
       setTimeout(() => {
@@ -125,24 +154,50 @@ const MenuManagement = () => {
     } catch (err) {
       console.error('Add menu item error:', err);
       let errorMessage = 'Failed to add menu item';
-      if (err.response?.data?.error) {
-        errorMessage += ': ' + err.response.data.error;
+      
+      if (err.response?.data?.details?.name) {
+        // Check if it's a duplicate name error
+        const nameErrors = err.response.data.details.name;
+        if (nameErrors.some(e => e.includes('unique') || e.includes('already'))) {
+          errorMessage = 'This menu item name already exists. Please use a different name.';
+        } else {
+          errorMessage = 'Name: ' + nameErrors.join(', ');
+        }
       } else if (err.response?.data?.details) {
         // Validation errors
         const details = err.response.data.details;
-        errorMessage += ': ' + Object.values(details).flat().join(', ');
-      } else if (err.message) {
-        errorMessage += ': ' + err.message;
+        errorMessage = Object.entries(details)
+          .map(([key, messages]) => `${key}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('; ');
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
       }
-      alert(errorMessage);
+      
+      toast.error(errorMessage);
     } finally {
       setIsAdding(false);
     }
   };
 
-  const filteredItems = menuItems.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = menuItems.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all'
+      ? true
+      : filterStatus === 'available'
+        ? !!item.availability_status
+        : !item.availability_status;
+    const matchesCategory = filterCategory === 'all' ? true : (item.category || '') === filterCategory;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const totalPages = Math.ceil(filteredItems.length / pageSize) || 1;
+  const pagedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  // Reset page when filters/search or pageSize change
+  useEffect(() => setCurrentPage(1), [searchTerm, filterStatus, filterCategory, pageSize]);
 
   const totalItems = menuItems.length;
   const availableItems = menuItems.filter(item => item.availability_status).length;
@@ -199,21 +254,45 @@ const MenuManagement = () => {
 
           {/* Search Bar and Add Button */}
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
-            <div className="flex-1 relative border-2 rounded-lg" style={{ borderColor: '#704214' }}>
-              <input
-                type="text"
-                placeholder="Search menu items..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-white outline-none text-xs sm:text-sm"
-                style={{ color: '#704214' }}
-              />
-              <Search
-                className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 sm:w-5 sm:h-5"
-                size={16}
-                style={{ color: '#704214' }}
-              />
-            </div>
+              <div className="flex-1 relative border-2 rounded-lg" style={{ borderColor: '#704214' }}>
+                <input
+                  type="text"
+                  placeholder="Search menu items..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-white outline-none text-xs sm:text-sm"
+                  style={{ color: '#704214' }}
+                />
+                <Search
+                  className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 sm:w-5 sm:h-5"
+                  size={16}
+                  style={{ color: '#704214' }}
+                />
+              </div>
+              <div className="flex gap-2 items-center">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-3 py-2 border-2 rounded-lg text-sm bg-white"
+                  style={{ borderColor: '#704214', color: '#704214' }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="available">Available</option>
+                  <option value="unavailable">Unavailable</option>
+                </select>
+
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="px-3 py-2 border-2 rounded-lg text-sm bg-white"
+                  style={{ borderColor: '#704214', color: '#704214' }}
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
             <button
               onClick={() => setIsAddingItem(true)}
               className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base whitespace-nowrap"
@@ -276,7 +355,7 @@ const MenuManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredItems.map((item, index) => (
+                    {pagedItems.map((item, index) => (
                     <tr
                       key={item.id}
                       className="table-row-hover fade-transition"
@@ -346,6 +425,14 @@ const MenuManagement = () => {
                   ))}
                 </tbody>
               </table>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                pageSize={pageSize}
+                pageSizeOptions={[10,25,50,100]}
+                onPageSizeChange={setPageSize}
+              />
             </div>
           )}
           </div>

@@ -5,6 +5,7 @@ import { Edit2, Search } from 'lucide-react';
 import api from '../../utils/api';
 import EditPaymentModal from '../../components/modals/EditPaymentModal';
 import PaymentPreviewModal from '../../components/modals/PaymentPreviewModal';
+import Pagination from '../../components/Pagination';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
@@ -109,9 +110,28 @@ const PaymentsManagement = () => {
 
   const filteredPayments = getFilteredPayments();
   const totalPayments = filteredPayments.length;
-  const cashPayments = filteredPayments.filter(o => o.payment_method === 'cash').length;
-  const onlinePayments = filteredPayments.filter(o => o.payment_method === 'online').length;
-  const totalRevenue = filteredPayments.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const cashPayments = filteredPayments.filter(o => (o.payment_method || '').toLowerCase() === 'cash').length;
+  const onlinePayments = filteredPayments.filter(o => (o.payment_method || '').toLowerCase() === 'online').length;
+
+  const parseAmount = (v) => {
+    if (v == null) return 0;
+    // strip currency symbols and thousands separators
+    const cleaned = String(v).replace(/[^0-9.-]+/g, '');
+    const n = parseFloat(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const totalRevenue = filteredPayments
+    .filter(o => (o.payment_status || '').toLowerCase() === 'paid')
+    .reduce((sum, o) => sum + parseAmount(o.total_amount), 0);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const totalPages = Math.ceil(filteredPayments.length / pageSize) || 1;
+  const pagedPayments = filteredPayments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => setCurrentPage(1), [filterType, searchTerm, pageSize]);
 
   return (
     <div className="flex h-screen" style={{ backgroundColor: '#FFFDF1' }}>
@@ -254,7 +274,7 @@ const PaymentsManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredPayments.map((order, index) => (
+                    {pagedPayments.map((order, index) => (
                       <tr
                         key={order.id}
                         className="table-row-hover fade-transition cursor-pointer transition-colors hover:bg-blue-50"
@@ -278,7 +298,15 @@ const PaymentsManagement = () => {
                         </td>
                         <td className="px-6 py-5" style={{ color: '#704214' }}>
                           <p className="text-base">
-                            {new Date(order.created_at).toLocaleDateString('en-US')}
+                            {new Date(order.created_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              hour12: true
+                            })}
                           </p>
                         </td>
                         <td className="px-6 py-5">
@@ -306,6 +334,14 @@ const PaymentsManagement = () => {
                     ))}
                   </tbody>
                 </table>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  pageSizeOptions={[10,25,50,100]}
+                  onPageSizeChange={setPageSize}
+                />
               </div>
             )}
           </div>

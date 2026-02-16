@@ -31,8 +31,6 @@ class OrderService
         // Create order with payment info
         $order = Order::create([
             'user_id' => $userId,
-            'subtotal' => $orderData['subtotal'] ?? 0,
-            'tax_amount' => $orderData['tax_amount'] ?? 0,
             'total_amount' => $orderData['total_amount'] ?? 0,
             'status' => $orderData['status'] ?? 'pending',
             'payment_method' => $orderData['payment_method'] ?? 'cash',
@@ -57,11 +55,13 @@ class OrderService
 
         // Add order items and decrease inventory
         foreach ($items as $item) {
+            $menuItem = MenuItem::find($item['menu_item_id']);
             OrderItem::create([
                 'order_id' => $order->id,
                 'menu_item_id' => $item['menu_item_id'],
+                'menu_item_name' => $menuItem->name ?? null,
                 'quantity' => $item['quantity'],
-                'price' => $item['price'] ?? MenuItem::find($item['menu_item_id'])->price,
+                'price' => $item['price'] ?? $menuItem->price,
             ]);
 
             // Decrease quantity_available and auto-mark as unavailable if sold out
@@ -83,8 +83,13 @@ class OrderService
             OrderDetail::create([
                 'order_id' => $order->id,
                 'delivery_type' => $orderData['order_detail']['delivery_type'] ?? 'delivery',
+                'delivery_service' => $orderData['order_detail']['delivery_service'] ?? null,
+                'delivery_fee' => $orderData['order_detail']['delivery_fee'] ?? 0,
+                'customer_name' => $orderData['order_detail']['customer_name'] ?? null,
+                'customer_phone' => $orderData['order_detail']['customer_phone'] ?? null,
                 'order_date' => $orderData['order_detail']['order_date'] ?? now()->toDateString(),
                 'order_time' => $orderData['order_detail']['order_time'] ?? now()->toTimeString(),
+                'estimated_delivery_time' => $orderData['order_detail']['estimated_delivery_time'] ?? null,
                 'delivery_address' => $orderData['order_detail']['delivery_address'] ?? null,
             ]);
         }
@@ -137,10 +142,9 @@ class OrderService
             throw new \Exception('Order not found');
         }
 
-        // Only allow cancellation if order is pending, confirmed, or preparing
-        $cancellableStatuses = ['pending', 'confirmed', 'preparing'];
-        if (!in_array($order->status, $cancellableStatuses)) {
-            throw new \Exception('Only ' . implode(', ', $cancellableStatuses) . ' orders can be cancelled');
+        // Allow cancellation only for pending orders
+        if ($order->status !== 'pending') {
+            throw new \Exception('Only pending orders can be cancelled');
         }
 
         $order->update(['status' => 'cancelled']);

@@ -6,6 +6,7 @@ import api from '../../utils/api';
 import EditOrderModal from '../../components/modals/EditOrderModal';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal';
 import OrderPreviewModal from '../../components/modals/OrderPreviewModal';
+import Pagination from '../../components/Pagination';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
@@ -121,6 +122,14 @@ const OrdersManagement = () => {
   const totalOrders = orders.length;
   const completedOrders = orders.filter(o => o.status === 'completed').length;
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const totalPages = Math.ceil(filteredOrders.length / pageSize) || 1;
+  const pagedOrders = filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => setCurrentPage(1), [filterType, pageSize]);
 
   return (
     <div className="flex h-screen flex-col lg:flex-row" style={{ backgroundColor: '#FFFDF1' }}>
@@ -245,7 +254,7 @@ const OrdersManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredOrders.map((order, index) => (
+                    {pagedOrders.map((order, index) => (
                       <tr
                         key={order.id}
                         onClick={() => setPreviewOrder(order)}
@@ -283,7 +292,15 @@ const OrdersManagement = () => {
                         </td>
                         <td className="px-6 py-5" style={{ color: '#704214' }}>
                           <p className="text-base">
-                            {new Date(order.created_at).toLocaleDateString('en-US')}
+                            {new Date(order.created_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              hour12: true
+                            })}
                           </p>
                         </td>
                         <td className="px-6 py-5 flex gap-2">
@@ -314,6 +331,14 @@ const OrdersManagement = () => {
                     ))}
                   </tbody>
                 </table>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  pageSizeOptions={[10,25,50,100]}
+                  onPageSizeChange={setPageSize}
+                />
               </div>
             )}
           </div>

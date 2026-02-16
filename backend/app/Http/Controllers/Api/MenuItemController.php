@@ -47,7 +47,7 @@ class MenuItemController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                'name' => 'required|string|max:255|unique:menu_items,name',
                 'category' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
                 'price' => 'required|numeric|min:0',
@@ -98,7 +98,7 @@ class MenuItemController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                'name' => 'required|string|max:255|unique:menu_items,name,' . $id,
                 'category' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
                 'price' => 'required|numeric|min:0',

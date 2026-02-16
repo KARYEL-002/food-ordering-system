@@ -11,9 +11,12 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
     status: 'available',
     quantity_available: 10,
     image: null,
-    imagePreview: null
+    imagePreview: null,
+    imageUrl: ''
   });
   const [imageError, setImageError] = useState(null);
+  const [useImageUrl, setUseImageUrl] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,16 +58,75 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+    // Client-side validation
+    const newErrors = {};
+    const name = (formData.name || '').toString().trim();
+    const category = (formData.category || '').toString().trim();
+    const description = (formData.description || '').toString().trim();
+    const priceVal = parseFloat(formData.price);
+    const qtyVal = parseInt(formData.quantity_available, 10);
+
+    // Helper: check if string looks like real words
+    const isValidWord = (str) => {
+      if (!str || str.length < 3) return false;
+      
+      // Must contain letters and vowels
+      const hasLetters = /[A-Za-z]/.test(str);
+      const vowelCount = (str.match(/[aeiouAEIOU]/g) || []).length;
+      const hasEnoughVowels = vowelCount >= 1;
+      
+      // No excessive repeated characters (3+ same char in a row like 'hhh' or 'www')
+      const noRepeat = !/(.)(\1{2,})/.test(str);
+      
+      // Allow letters, numbers, spaces, hyphens, ampersand, parentheses only
+      const isReasonable = /^[A-Za-z0-9\s\-\&\(\)]+$/.test(str);
+      
+      // Check vowel ratio: minimum 20% of letters should be vowels
+      const letterCount = (str.match(/[A-Za-z]/g) || []).length;
+      const vowelRatio = letterCount > 0 ? vowelCount / letterCount : 0;
+      const hasGoodRatio = vowelRatio >= 0.2;
+      
+      return hasLetters && hasEnoughVowels && noRepeat && isReasonable && hasGoodRatio;
+    };
+
+    if (!isValidWord(name)) {
+      newErrors.name = 'Please enter a real food name (e.g., "Adobo", "Fried Rice").';
+    }
+
+    if (category && !isValidWord(category)) {
+      newErrors.category = 'Please enter a real category (e.g., "Main Dishes", "Desserts").';
+    }
+
+    if (description && description.length > 0 && description.length < 5) {
+      newErrors.description = 'Description is too short (min 5 characters) or leave it blank.';
+    }
+
+    if (isNaN(priceVal) || priceVal <= 0) {
+      newErrors.price = 'Price must be a number greater than 0.';
+    }
+
+    if (isNaN(qtyVal) || qtyVal < 0) {
+      newErrors.quantity_available = 'Quantity must be a non-negative integer.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+
     const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('category', formData.category);
-    formDataToSend.append('description', formData.description);
-    formDataToSend.append('price', parseFloat(formData.price));
+    formDataToSend.append('name', name);
+    formDataToSend.append('category', category);
+    formDataToSend.append('description', description);
+    formDataToSend.append('price', priceVal);
     formDataToSend.append('availability_status', formData.status === 'available' ? 1 : 0);
-    formDataToSend.append('quantity_available', parseInt(formData.quantity_available));
-    
-    if (formData.image) {
+    formDataToSend.append('quantity_available', isNaN(qtyVal) ? 10 : qtyVal);
+
+    if (useImageUrl && formData.imageUrl) {
+      formDataToSend.append('image_url', formData.imageUrl);
+    } else if (formData.image) {
       formDataToSend.append('image', formData.image);
     }
 
@@ -80,9 +142,11 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
       status: 'available',
       quantity_available: 10,
       image: null,
-      imagePreview: null
+      imagePreview: null,
+      imageUrl: ''
     });
     setImageError(null);
+    setUseImageUrl(false);
     onCancel();
   };
 
@@ -123,6 +187,9 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
                 placeholder="e.g., Adobo (Chicken)"
                 required
               />
+              {errors.name && (
+                <p className="text-sm text-red-600 mt-1">{errors.name}</p>
+              )}
             </div>
             <div>
               <label style={{ color: '#704214' }} className="block font-bold text-xs uppercase mb-1.5 tracking-wide">
@@ -137,6 +204,9 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
                 style={{ borderColor: '#704214', color: '#704214' }}
                 placeholder="e.g., Main Dishes"
               />
+              {errors.category && (
+                <p className="text-sm text-red-600 mt-1">{errors.category}</p>
+              )}
             </div>
           </div>
 
@@ -158,6 +228,9 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
                 placeholder="0.00"
                 required
               />
+              {errors.price && (
+                <p className="text-sm text-red-600 mt-1">{errors.price}</p>
+              )}
             </div>
             <div>
               <label style={{ color: '#704214' }} className="block font-bold text-xs uppercase mb-1.5 tracking-wide">
@@ -174,6 +247,9 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
                 placeholder="10"
                 required
               />
+              {errors.quantity_available && (
+                <p className="text-sm text-red-600 mt-1">{errors.quantity_available}</p>
+              )}
             </div>
           </div>
 
@@ -208,6 +284,9 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
               style={{ borderColor: '#704214', color: '#704214' }}
               placeholder="Short description (optional)"
             />
+            {errors.description && (
+              <p className="text-sm text-red-600 mt-1">{errors.description}</p>
+            )}
           </div>
 
           {/* Row 5: Image Upload */}
@@ -215,25 +294,73 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
             <label style={{ color: '#704214' }} className="block font-bold text-xs uppercase mb-1.5 tracking-wide">
               Image
             </label>
-            <div className="relative">
-              <input
-                type="file"
-                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
-                onChange={handleImageChange}
-                className="hidden"
-                id="image-input"
-              />
-              <label
-                htmlFor="image-input"
-                className="flex items-center justify-center gap-2 w-full px-3 py-2 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50 text-sm"
-                style={{ borderColor: '#704214' }}
+            
+            {/* Toggle between file upload and URL */}
+            <div className="flex gap-3 mb-3">
+              <button
+                type="button"
+                onClick={() => setUseImageUrl(false)}
+                className="px-3 py-1 rounded text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: !useImageUrl ? '#704214' : '#D4C5B0',
+                  color: !useImageUrl ? 'white' : '#704214'
+                }}
               >
-                <Upload size={16} style={{ color: '#704214' }} />
-                <span style={{ color: '#704214' }} className="font-semibold truncate">
-                  {formData.image ? formData.image.name : 'Choose Image'}
-                </span>
-              </label>
+                Upload File
+              </button>
+              <button
+                type="button"
+                onClick={() => setUseImageUrl(true)}
+                className="px-3 py-1 rounded text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: useImageUrl ? '#704214' : '#D4C5B0',
+                  color: useImageUrl ? 'white' : '#704214'
+                }}
+              >
+                Paste URL
+              </button>
             </div>
+
+            {/* File upload input */}
+            {!useImageUrl && (
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-input"
+                />
+                <label
+                  htmlFor="image-input"
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50 text-sm"
+                  style={{ borderColor: '#704214' }}
+                >
+                  <Upload size={16} style={{ color: '#704214' }} />
+                  <span style={{ color: '#704214' }} className="font-semibold truncate">
+                    {formData.image ? formData.image.name : 'Choose Image'}
+                  </span>
+                </label>
+              </div>
+            )}
+
+            {/* URL input */}
+            {useImageUrl && (
+              <div>
+                <input
+                  type="url"
+                  placeholder="Paste image URL here (e.g., https://...)"
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    imageUrl: e.target.value,
+                    imagePreview: e.target.value // Use URL as preview
+                  }))}
+                  className="w-full px-3 py-2 border-2 rounded-lg outline-none text-sm transition-colors"
+                  style={{ borderColor: '#704214', color: '#704214' }}
+                />
+              </div>
+            )}
             
             {imageError && (
               <div className="mt-2 p-2 bg-red-100 border border-red-400 rounded-lg">
@@ -251,6 +378,7 @@ const AddMenuItemModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
                     alt="Preview"
                     className="w-20 h-20 object-cover rounded-lg border-2"
                     style={{ borderColor: '#704214' }}
+                    onError={() => setImageError('Failed to load image preview')}
                   />
                 </div>
               </div>

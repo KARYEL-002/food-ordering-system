@@ -3,6 +3,7 @@ import { useState } from 'react';
 /**
  * OptimizedImage component with fallback
  * Uses native lazy loading for performance
+ * Handles both old (/api/files/...) and new (/storage/...) image URLs
  */
 const OptimizedImage = ({ 
   src, 

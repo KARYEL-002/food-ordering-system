@@ -67,3 +67,85 @@
 .scale-transition {
   transition: transform 0.2s ease-out;
 }
+
+/* Card Hover Animations */
+.card-hover {
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(112, 66, 20, 0.15);
+}
+
+/* Order Card Animations */
+@keyframes cardFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardStagger {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-fade-in-up {
+  animation: cardFadeInUp 0.5s ease-out forwards;
+}
+
+.card-stagger {
+  animation: cardStagger 0.5s ease-out forwards;
+}
+
+.card-stagger-1 { animation-delay: 0.05s; }
+.card-stagger-2 { animation-delay: 0.1s; }
+.card-stagger-3 { animation-delay: 0.15s; }
+.card-stagger-4 { animation-delay: 0.2s; }
+.card-stagger-5 { animation-delay: 0.25s; }
+.card-stagger-6 { animation-delay: 0.3s; }
+.card-stagger-7 { animation-delay: 0.35s; }
+.card-stagger-8 { animation-delay: 0.4s; }
+
+/* Enhanced Button Animations */
+@keyframes buttonGlow {
+  from {
+    box-shadow: 0 0 0 0 rgba(112, 66, 20, 0.7);
+  }
+  to {
+    box-shadow: 0 0 0 8px rgba(112, 66, 20, 0);
+  }
+}
+
+.btn-press {
+  transition: all 0.15s ease-out;
+}
+
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* Loading Pulse Animation */
+@keyframes loadingPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: loadingPulse 2s ease-in-out infinite;
+}

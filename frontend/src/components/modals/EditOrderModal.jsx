@@ -51,6 +51,7 @@ const EditOrderModal = ({ isOpen, order, onConfirm, onCancel, isLoading }) => {
               style={{ borderColor: '#704214', color: '#704214' }}
             >
               <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>

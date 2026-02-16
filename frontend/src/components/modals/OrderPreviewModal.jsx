@@ -8,6 +8,10 @@ const OrderPreviewModal = ({ isOpen, order, onClose }) => {
   const items = order.items || [];
   const user = order.user || {};
 
+  // compute items subtotal and delivery fee for display
+  const itemsTotal = items.reduce((s, it) => s + (it.price || 0) * (it.quantity || 0), 0);
+  const deliveryFee = Number(details.delivery_fee || details.deliveryFee || 0);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 modal-content" style={{ borderColor: '#704214' }}>
@@ -104,6 +108,12 @@ const OrderPreviewModal = ({ isOpen, order, onClose }) => {
                   </p>
                 </div>
                 <div>
+                  <p className="text-xs uppercase font-bold" style={{ color: '#997755' }}>Delivery Service</p>
+                  <p style={{ color: '#704214' }} className="text-sm mt-1 capitalize">
+                    {details.delivery_service || details.deliveryService || 'N/A'}
+                  </p>
+                </div>
+                <div>
                   <p className="text-xs uppercase font-bold" style={{ color: '#997755' }}>Order Date</p>
                   <p style={{ color: '#704214' }} className="text-sm mt-1">
                     {details.order_date ? new Date(details.order_date).toLocaleDateString('en-US') : 'N/A'}
@@ -144,7 +154,7 @@ const OrderPreviewModal = ({ isOpen, order, onClose }) => {
                   <div key={idx} className="flex justify-between items-start border-b pb-2" style={{ borderColor: '#E8DCC8' }}>
                     <div>
                       <p style={{ color: '#704214' }} className="font-semibold">
-                        {item.menu_item?.name || item.name || 'Item'}
+                        {item.menu_item?.name || item.menu_item_name || item.name || 'Item'}
                       </p>
                       <p style={{ color: '#997755' }} className="text-xs mt-1">
                         Quantity: {item.quantity}
@@ -164,25 +174,21 @@ const OrderPreviewModal = ({ isOpen, order, onClose }) => {
           {/* Order Summary */}
           <div className="bg-orange-100 p-4 rounded-lg border-2" style={{ borderColor: '#E8DCC8' }}>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <p style={{ color: '#704214' }} className="font-semibold">Subtotal:</p>
-                <p style={{ color: '#704214' }} className="font-semibold">
-                  {formatCurrency(order.subtotal || order.total_amount)}
-                </p>
-              </div>
-              {order.tax_amount && (
-                <div className="flex justify-between">
-                  <p style={{ color: '#704214' }} className="font-semibold">Tax (10%):</p>
-                  <p style={{ color: '#704214' }} className="font-semibold">
-                    {formatCurrency(order.tax_amount)}
-                  </p>
-                </div>
-              )}
               <div className="border-t-2 pt-2" style={{ borderColor: '#D4C5B0' }}>
                 <div className="flex justify-between">
+                  <p style={{ color: '#704214' }} className="text-sm">Items Total</p>
+                  <p style={{ color: '#704214' }} className="text-sm">{formatCurrency(itemsTotal)}</p>
+                </div>
+                {deliveryFee > 0 && (
+                  <div className="flex justify-between mt-2">
+                    <p style={{ color: '#704214' }} className="text-sm">Delivery Fee</p>
+                    <p style={{ color: '#704214' }} className="text-sm">{formatCurrency(deliveryFee)}</p>
+                  </div>
+                )}
+                <div className="flex justify-between mt-3">
                   <p style={{ color: '#704214' }} className="text-lg font-bold">Total:</p>
                   <p style={{ color: '#704214' }} className="text-lg font-bold">
-                    {formatCurrency(order.total_amount)}
+                    {formatCurrency(itemsTotal + deliveryFee)}
                   </p>
                 </div>
               </div>

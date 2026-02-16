@@ -1,4 +1,4 @@
-import { Search, Menu, ArrowLeft } from 'lucide-react';
+import { Menu, ArrowLeft } from 'lucide-react';
 
 const AdminTopBar = ({ onMenuClick }) => {
   return (
@@ -19,17 +19,7 @@ const AdminTopBar = ({ onMenuClick }) => {
         </button>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-        <div className="flex items-center px-3 sm:px-4 py-2 rounded-full border-2 fade-transition text-xs sm:text-sm" style={{ borderColor: '#704214', backgroundColor: '#FFFDF1', minWidth: '200px' }}>
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-transparent outline-none flex-1 text-xs sm:text-sm"
-            style={{ color: '#704214' }}
-          />
-          <Search className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#704214' }} />
-        </div>
-      </div>
+      <div className="flex items-center gap-2 sm:gap-4 flex-wrap" />
     </div>
   );
 };

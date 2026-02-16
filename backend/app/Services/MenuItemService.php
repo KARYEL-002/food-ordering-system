@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\MenuItem;
-use Illuminate\Support\Facades\Storage;
 
 class MenuItemService
 {
@@ -14,11 +13,12 @@ class MenuItemService
         }
 
         try {
-            // Store the file in storage/app/public/menu-items
+            // Store the file in storage/app/public/menu-items subdirectory
             $path = $file->store('menu-items', 'public');
             
-            // Return API path that we can serve through StorageController
-            return '/api/files/menu-items/' . basename($path);
+            // $path is relative to storage/app/public/ (e.g., 'menu-items/filename.png')
+            // Return the public/storage URL path (served directly by web server)
+            return '/storage/' . $path;
         } catch (\Exception $e) {
             \Log::error('Image upload failed: ' . $e->getMessage());
             throw new \Exception('Failed to upload image: ' . $e->getMessage());

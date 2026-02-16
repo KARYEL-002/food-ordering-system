@@ -165,13 +165,12 @@ curl -X POST http://localhost:8000/api/orders \
 
 Edit `.env` file to configure:
 - `APP_URL` - Application URL
-- `DB_CONNECTION` - Database connection (sqlite, mysql, pgsql)
+- `DB_CONNECTION` - Database connection (mysql)
 - `DB_DATABASE` - Database file/name
 - `SANCTUM_STATEFUL_DOMAINS` - Domains for Sanctum authentication
 
 ## Notes
 
-- Uses SQLite by default for simplicity
 - To use MySQL/PostgreSQL, change `DB_CONNECTION` in `.env`
 - Admin role required for menu management and order status updates
 - Customer role assigned by default on registration

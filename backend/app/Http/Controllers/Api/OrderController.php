@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\OrderService;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -27,8 +28,6 @@ class OrderController extends Controller
                 'items.*.menu_item_id' => 'required|integer',
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.price' => 'required|numeric',
-                'subtotal' => 'required|numeric',
-                'tax_amount' => 'required|numeric',
                 'total_amount' => 'required|numeric',
                 'payment_method' => 'required|string',
                 // If payment_method is gcash, require a numeric gcash_reference of reasonable length
@@ -37,6 +36,10 @@ class OrderController extends Controller
                 'payment_status' => 'nullable|string',
                 'order_detail' => 'nullable|array',
                 'order_detail.delivery_type' => 'nullable|string',
+                'order_detail.delivery_service' => 'nullable|string',
+                'order_detail.delivery_fee' => 'nullable|numeric|min:0',
+                'order_detail.customer_name' => 'nullable|string',
+                'order_detail.customer_phone' => 'nullable|string',
                 'order_detail.order_date' => 'nullable|date',
                 'order_detail.order_time' => 'nullable|date_format:H:i',
                 'order_detail.delivery_address' => 'nullable|string',

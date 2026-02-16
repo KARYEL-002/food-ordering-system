@@ -6,7 +6,7 @@ const OrderCard = ({ order, onUpdateStatus, showActions, userRole }) => {
       pending: ['confirmed', 'cancelled'],
       confirmed: ['preparing', 'cancelled'],
       preparing: ['ready', 'cancelled'],
-      ready: ['delivered'],
+      ready: ['delivered', 'cancelled'],
     };
     return statusFlow[currentStatus]?.includes(newStatus);
   };
@@ -27,7 +27,7 @@ const OrderCard = ({ order, onUpdateStatus, showActions, userRole }) => {
         {order.items?.map((item) => (
           <div key={item.id} className="flex justify-between text-sm">
             <span>
-              {item.quantity}x {item.menu_item?.name || item.menu_item_name}
+              {item.quantity}x {item.menu_item?.name || item.menu_item_name || 'Item'}
             </span>
             <span>{formatCurrency(item.price * item.quantity)}</span>
           </div>

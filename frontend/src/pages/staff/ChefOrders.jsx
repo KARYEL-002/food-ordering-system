@@ -4,6 +4,7 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '../../utils/helpers';
 import { MdCheckCircle, MdPending, MdTimer } from 'react-icons/md';
+import Pagination from '../../components/Pagination';
 
 const ChefOrders = () => {
   const { user } = useAuth();
@@ -78,6 +79,14 @@ const ChefOrders = () => {
     (order) => order.status?.toLowerCase() === selectedStatus.toLowerCase()
   );
 
+  // Pagination for chef orders
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const totalPages = Math.ceil(filteredOrders.length / pageSize) || 1;
+  const pagedOrders = filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => setCurrentPage(1), [selectedStatus, pageSize]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -117,17 +126,17 @@ const ChefOrders = () => {
 
         {/* Orders Grid */}
         <div className="grid gap-6">
-          {filteredOrders.length === 0 ? (
+          {pagedOrders.length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
               <p className="text-gray-500 text-lg">No {selectedStatus} orders</p>
             </div>
           ) : (
-            filteredOrders.map((order) => (
+            pagedOrders.map((order) => (
               <div
-                key={order.id}
-                className="bg-white rounded-lg shadow-md p-6 border-l-4"
-                style={{ borderColor: '#704214' }}
-              >
+                  key={order.id}
+                  className="bg-white rounded-lg shadow-md p-6 border-l-4"
+                  style={{ borderColor: '#704214' }}
+                >
                 {/* Order Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -213,6 +222,18 @@ const ChefOrders = () => {
                 </div>
               </div>
             ))
+          )}
+          {totalPages > 0 && (
+            <div className="mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                pageSize={pageSize}
+                pageSizeOptions={[10,25,50,100]}
+                onPageSizeChange={setPageSize}
+              />
+            </div>
           )}
         </div>
       </div>

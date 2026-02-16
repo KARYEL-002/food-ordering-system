@@ -12,6 +12,7 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
     status: 'available',
     quantity_available: 10
   });
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (item) {
@@ -35,6 +36,18 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // If changing quantity, coerce to number and auto-update status
+    if (name === 'quantity_available') {
+      const qty = parseInt(value === '' ? 0 : value, 10);
+      setFormData(prev => ({
+        ...prev,
+        quantity_available: isNaN(qty) ? '' : qty,
+        // auto-set status based on qty: available if >0, unavailable if 0
+        status: qty > 0 ? 'available' : 'unavailable'
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -43,6 +56,64 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Client-side validation
+    const newErrors = {};
+    const name = (formData.name || '').toString().trim();
+    const category = (formData.category || '').toString().trim();
+    const description = (formData.description || '').toString().trim();
+    const priceVal = parseFloat(formData.price);
+    const qtyVal = parseInt(formData.quantity_available, 10);
+
+    // Helper: check if string looks like real words
+    const isValidWord = (str) => {
+      if (!str || str.length < 3) return false;
+      
+      // Must contain letters and vowels
+      const hasLetters = /[A-Za-z]/.test(str);
+      const vowelCount = (str.match(/[aeiouAEIOU]/g) || []).length;
+      const hasEnoughVowels = vowelCount >= 1;
+      
+      // No excessive repeated characters (3+ same char in a row like 'hhh' or 'www')
+      const noRepeat = !/(.)(\1{2,})/.test(str);
+      
+      // Allow letters, numbers, spaces, hyphens, ampersand, parentheses only
+      const isReasonable = /^[A-Za-z0-9\s\-\&\(\)]+$/.test(str);
+      
+      // Check vowel ratio: minimum 20% of letters should be vowels
+      const letterCount = (str.match(/[A-Za-z]/g) || []).length;
+      const vowelRatio = letterCount > 0 ? vowelCount / letterCount : 0;
+      const hasGoodRatio = vowelRatio >= 0.2;
+      
+      return hasLetters && hasEnoughVowels && noRepeat && isReasonable && hasGoodRatio;
+    };
+
+    if (!isValidWord(name)) {
+      newErrors.name = 'Please enter a real food name (e.g., "Adobo", "Fried Rice").';
+    }
+
+    if (category && !isValidWord(category)) {
+      newErrors.category = 'Please enter a real category (e.g., "Main Dishes", "Desserts").';
+    }
+
+    if (description && description.length > 0 && description.length < 5) {
+      newErrors.description = 'Description is too short (min 5 characters) or leave it blank.';
+    }
+
+    if (isNaN(priceVal) || priceVal <= 0) {
+      newErrors.price = 'Price must be a number greater than 0.';
+    }
+
+    if (isNaN(qtyVal) || qtyVal < 0) {
+      newErrors.quantity_available = 'Quantity must be a non-negative integer.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+
     onConfirm({
       ...item,
       ...formData,
@@ -87,6 +158,9 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
                 style={{ borderColor: '#704214', color: '#704214' }}
                 required
               />
+              {errors.name && (
+                <p className="text-sm text-red-600 mt-1">{errors.name}</p>
+              )}
             </div>
             <div>
               <label style={{ color: '#704214' }} className="block font-bold text-xs uppercase mb-1.5 tracking-wide">
@@ -100,6 +174,9 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
                 className="w-full px-3 py-2 border-2 rounded-lg outline-none text-sm transition-colors"
                 style={{ borderColor: '#704214', color: '#704214' }}
               />
+              {errors.category && (
+                <p className="text-sm text-red-600 mt-1">{errors.category}</p>
+              )}
             </div>
           </div>
 
@@ -120,6 +197,9 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
                 style={{ borderColor: '#704214', color: '#704214' }}
                 required
               />
+              {errors.price && (
+                <p className="text-sm text-red-600 mt-1">{errors.price}</p>
+              )}
             </div>
             <div>
               <label style={{ color: '#704214' }} className="block font-bold text-xs uppercase mb-1.5 tracking-wide">
@@ -135,6 +215,9 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
                 style={{ borderColor: '#704214', color: '#704214' }}
                 required
               />
+              {errors.quantity_available && (
+                <p className="text-sm text-red-600 mt-1">{errors.quantity_available}</p>
+              )}
             </div>
           </div>
 
@@ -169,6 +252,9 @@ const EditMenuItemModal = ({ isOpen, item, onConfirm, onCancel, isLoading }) => 
               rows="2"
               placeholder="Item description..."
             />
+            {errors.description && (
+              <p className="text-sm text-red-600 mt-1">{errors.description}</p>
+            )}
           </div>
 
           {/* Action Buttons */}

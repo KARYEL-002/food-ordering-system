@@ -151,11 +151,21 @@ const Menu = () => {
     }
   };
 
-  const categories = ['all', ...new Set(menuItems.map(item => item.category))];
+  const categories = ['all', ...new Set(menuItems.map(item => item.category).filter(Boolean))];
+
+  const matchesSearch = (item, q) => {
+    if (!q) return true;
+    const s = q.toLowerCase();
+    return (item.name || '').toLowerCase().includes(s) || (item.description || '').toLowerCase().includes(s);
+  };
 
   const getCategoryCount = (category) => {
-    if (category === 'all') return menuItems.length;
-    return menuItems.filter(item => item.category === category).length;
+    // Count items matching the current searchQuery and optional category
+    if (category === 'all') {
+      return menuItems.filter(item => matchesSearch(item, searchQuery)).length;
+    }
+
+    return menuItems.filter(item => item.category === category && matchesSearch(item, searchQuery)).length;
   };
 
   const filteredItems = selectedCategory === 'all'

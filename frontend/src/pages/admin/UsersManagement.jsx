@@ -5,6 +5,7 @@ import { Trash2, Edit2 } from 'lucide-react';
 import api from '../../utils/api';
 import EditUserModal from '../../components/modals/EditUserModal';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal';
+import Pagination from '../../components/Pagination';
 
 const UsersManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,6 +20,14 @@ const UsersManagement = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const totalPages = Math.ceil(users.length / pageSize) || 1;
+  const pagedUsers = users.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => setCurrentPage(1), [users, pageSize]);
 
   const fetchUsers = async () => {
     try {
@@ -166,7 +175,7 @@ const UsersManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user, index) => (
+                    {pagedUsers.map((user, index) => (
                       <tr
                         key={user.id}
                         className="table-row-hover fade-transition"
@@ -186,7 +195,15 @@ const UsersManagement = () => {
                         </td>
                         <td className="px-6 py-5" style={{ color: '#704214' }}>
                           <p className="text-base">
-                            {new Date(user.created_at).toLocaleDateString('en-US')}
+                            {new Date(user.created_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              hour12: true
+                            })}
                           </p>
                         </td>
                         <td className="px-6 py-5 flex gap-2">
@@ -211,6 +228,7 @@ const UsersManagement = () => {
                     ))}
                   </tbody>
                 </table>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
               </div>
             )}
           </div>

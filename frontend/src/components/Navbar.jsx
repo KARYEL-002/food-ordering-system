@@ -63,7 +63,7 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
-              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-12 sm:h-14 md:h-16 w-auto" />
+              <img src="/images/logo.png" alt="FoodHub Logo" className="h-12 sm:h-14 md:h-16 w-auto" />
             </Link>
           </div>
         </div>
@@ -78,7 +78,7 @@ const Navbar = () => {
           {/* Logo */}
           <div>
             <Link to="/" className="flex items-center">
-              <img src="/images/food-hub-logo.png" alt="FoodHub Logo" className="h-12 sm:h-14 md:h-16 w-auto" />
+              <img src="/images/logo.png" alt="FoodHub Logo" className="h-12 sm:h-14 md:h-16 w-auto" />
             </Link>
           </div>
 
@@ -160,13 +160,22 @@ const Navbar = () => {
                   {(user.role === 'admin' || user.role === 'Admin') && (
                     <>
                       <Link
+                        to="/admin/dashboard"
+                        onClick={() => setShowDropdown(false)}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
                         to="/admin/menu"
+                        onClick={() => setShowDropdown(false)}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         Manage Menu
                       </Link>
                       <Link
                         to="/admin/orders"
+                        onClick={() => setShowDropdown(false)}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         All Orders
