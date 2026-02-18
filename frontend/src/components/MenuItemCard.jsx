@@ -45,7 +45,7 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit = () => {}, onDelete 
         </div>
 
         {/* Card background */}
-        <div className="bg-gradient-to-br from-orange-200 to-orange-300 rounded-2xl sm:rounded-3xl pt-12 sm:pt-16 md:pt-16 pb-4 sm:pb-5 px-4 sm:px-6 transition-all duration-300 hover:shadow-2xl flex flex-col h-full">
+        <div className="bg-gradient-to-br from-orange-200 to-orange-300 rounded-2xl sm:rounded-3xl pt-12 sm:pt-16 md:pt-16 pb-4 sm:pb-5 px-4 sm:px-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] flex flex-col h-full">
           {/* Content */}
           <div className="space-y-1 sm:space-y-2 flex-1 flex flex-col">
             <h3 className="text-sm sm:text-base font-bold mb-0" style={{fontFamily: 'Montserrat, sans-serif', color: '#704214'}}>{item.name}</h3>
@@ -126,7 +126,7 @@ const MenuItemCard = ({ item, onAddToCart, isAdmin, onEdit = () => {}, onDelete 
                           }
                           setShowAddToCart(true);
                         }}
-                        className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 transform overflow-hidden flex-shrink-0 bg-white shadow-md hover:shadow-lg hover:scale-110 active:scale-95"
+                        className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-transform duration-300 transform overflow-hidden flex-shrink-0 bg-white shadow-md hover:shadow-lg hover:scale-110 active:scale-95"
                       >
                         {/* Subtle hover background slide */}
                         <div className="absolute inset-0 bg-gray-100 transform translate-x-full group-hover:-translate-x-full transition-transform duration-300"></div>

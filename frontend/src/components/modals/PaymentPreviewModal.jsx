@@ -36,26 +36,27 @@ const PaymentPreviewModal = ({ isOpen, payment, onClose, onEdit }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 modal-content" style={{ borderColor: '#704214' }}>
+    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[86vh] overflow-y-auto border shadow-lg" style={{ borderColor: '#E8DCC8' }}>
         {/* Header */}
-        <div className="sticky top-0 bg-white flex justify-between items-center p-6 border-b-2" style={{ borderColor: '#E8DCC8' }}>
-          <h2 style={{ color: '#704214' }} className="text-3xl font-bold">
+        <div className="sticky top-0 bg-white flex justify-between items-center px-4 py-3 border-b" style={{ borderColor: '#E8DCC8' }}>
+          <h2 style={{ color: '#704214' }} className="text-2xl font-semibold">
             Payment #{String(orderId).padStart(4, '0')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             style={{ color: '#704214' }}
+            aria-label="Close payment preview"
           >
-            <MdClose size={24} />
+            <MdClose size={22} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 space-y-4">
           {/* Payment Status & Info */}
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm uppercase font-bold" style={{ color: '#997755' }}>Payment Status</p>
               <span
@@ -93,8 +94,8 @@ const PaymentPreviewModal = ({ isOpen, payment, onClose, onEdit }) => {
 
           {/* Payment Details */}
           <div>
-            <h3 style={{ color: '#704214' }} className="text-lg font-bold mb-3">Payment Details</h3>
-            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+            <h3 style={{ color: '#704214' }} className="text-sm font-semibold mb-3">Payment Details</h3>
+            <div className="space-y-3 bg-[#FFFDF1] p-3 rounded-md border" style={{ borderColor: '#E8DCC8' }}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs uppercase font-bold" style={{ color: '#997755' }}>Order ID</p>
@@ -137,8 +138,8 @@ const PaymentPreviewModal = ({ isOpen, payment, onClose, onEdit }) => {
 
           {/* Additional Info */}
           <div>
-            <h3 style={{ color: '#704214' }} className="text-lg font-bold mb-3">Transaction Information</h3>
-            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+            <h3 style={{ color: '#704214' }} className="text-sm font-semibold mb-3">Transaction Information</h3>
+            <div className="space-y-3 bg-[#FFFDF1] p-3 rounded-md border" style={{ borderColor: '#E8DCC8' }}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs uppercase font-bold" style={{ color: '#997755' }}>Transaction Reference</p>
@@ -153,12 +154,7 @@ const PaymentPreviewModal = ({ isOpen, payment, onClose, onEdit }) => {
                   </p>
                 </div>
               </div>
-              <div>
-                <p className="text-xs uppercase font-bold" style={{ color: '#997755' }}>Payment Notes</p>
-                <p style={{ color: '#704214' }} className="text-sm mt-1">
-                  {paymentData?.payment_notes || 'No additional notes'}
-                </p>
-              </div>
+            
             </div>
           </div>
 
@@ -166,29 +162,30 @@ const PaymentPreviewModal = ({ isOpen, payment, onClose, onEdit }) => {
           <div style={{ borderTop: '2px solid #E8DCC8' }}></div>
 
           {/* Action Button */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                onEdit(payment);
-                onClose();
-              }}
-              className="flex-1 px-4 py-3 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#00BCD4' }}
-            >
-              <Edit2 size={18} />
-              Edit Payment
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-3 rounded-lg font-bold transition-all"
-              style={{ 
-                backgroundColor: '#FFFDF1',
-                color: '#704214',
-                border: '2px solid #704214'
-              }}
-            >
-              Close
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+            <div>
+              <button
+                onClick={() => { onEdit(payment); onClose(); }}
+                className="w-full py-2 rounded-md font-semibold flex items-center justify-center gap-2 text-white"
+                style={{ backgroundColor: '#00BCD4' }}
+              >
+                <Edit2 size={16} />
+                Edit Payment
+              </button>
+            </div>
+            <div>
+              <button
+                onClick={onClose}
+                className="w-full py-2 rounded-md font-semibold"
+                style={{
+                  backgroundColor: '#FFFDF1',
+                  color: '#704214',
+                  border: '2px solid #704214'
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>

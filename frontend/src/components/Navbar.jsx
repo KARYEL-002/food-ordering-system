@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MdShoppingCart, MdAccountCircle, MdClose, MdMenu } from 'react-icons/md';
+import { MdShoppingCart, MdAccountCircle, MdClose, MdMenu, MdLock } from 'react-icons/md';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated, loading, isAdmin } = useAuth();
@@ -329,32 +329,40 @@ const Navbar = () => {
       {/* Admin Modal */}
       {showAdminModal && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-5 max-w-xs w-full mx-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-base font-semibold" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>Access Denied</span>
-              <button
-                onClick={() => setShowAdminModal(false)}
-                className="text-gray-400 hover:text-gray-700 text-lg font-bold"
-                aria-label="Close"
-              >
-                ×
-              </button>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full mx-4 border border-[#F6E7D0]">
+            <button
+              onClick={() => setShowAdminModal(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 text-lg"
+              aria-label="Close"
+            >
+              <MdClose />
+            </button>
+
+            <div className="flex justify-center -mt-12 mb-4">
+              <div className="bg-[#FFF5E6] rounded-full p-4 shadow-md ring-4 ring-[#FFFDF1]">
+                <MdLock className="w-6 h-6 text-[#704214]" />
+              </div>
             </div>
-            <div className="text-center mb-4">
-              <p className="text-sm text-gray-700 mb-1" style={{fontFamily: 'Montserrat, sans-serif'}}>
+
+            <div className="text-center mb-4 px-2">
+              <h3 className="text-xl sm:text-2xl font-bold" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>Access Denied</h3>
+              <p className="text-sm text-gray-700 mt-2" style={{fontFamily: 'Montserrat, sans-serif'}}>
                 Admins cannot place orders.
               </p>
-              <p className="text-xs text-gray-500" style={{fontFamily: 'Montserrat, sans-serif'}}>
+              <p className="text-xs text-gray-500 mt-1" style={{fontFamily: 'Montserrat, sans-serif'}}>
                 Use the admin panel for management.
               </p>
             </div>
-            <button
-              onClick={() => setShowAdminModal(false)}
-              className="w-full px-4 py-1 text-white text-xs font-semibold rounded-full hover:opacity-90 transition-all shadow"
-              style={{backgroundColor: '#704214', fontFamily: 'Montserrat, sans-serif'}}
-            >
-              OK
-            </button>
+
+            <div className="mt-2">
+              <button
+                onClick={() => setShowAdminModal(false)}
+                className="w-full py-3 text-white font-semibold rounded-full hover:opacity-95 transition-all shadow-md"
+                style={{backgroundColor: '#704214', fontFamily: 'Montserrat, sans-serif'}}
+              >
+                OK
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { UtensilsCrossed, Truck, CheckCircle2 } from 'lucide-react';
 import api from '../utils/api';
 import OptimizedImage from '../components/OptimizedImage';
 import { preloadImages, prefetchImages } from '../utils/imageLoader';
@@ -59,7 +60,7 @@ const Home = () => {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#FFFDF1'}}>
       {/* Hero Section */}
-      <div style={{backgroundColor: '#FFFDF1'}} className="py-6 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
+      <div style={{backgroundColor: '#FFFDF1'}} className="py-4 sm:py-6 md:py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
             {/* Left: Text Content */}
@@ -83,7 +84,7 @@ const Home = () => {
 
             {/* Right: Food Image */}
             <div className="relative animate-fade-in-up" style={{animationDelay: '200ms'}}>
-              <div className="relative max-w-sm sm:max-w-md mx-auto">
+              <div className="relative max-w-xs sm:max-w-sm md:max-w-md mx-auto">
                 <OptimizedImage
                   src={adobo}
                   alt="Delicious Filipino Food"
@@ -97,8 +98,9 @@ const Home = () => {
 
       {/* Featured Items Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
-        <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-base sm:text-lg font-bold text-amber-900 mb-2 sm:mb-4" style={{fontFamily: 'Montserrat, sans-serif'}}>Best meals for you</h2>
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+          <h2 className="text-xl sm:text-xl md:text-xl font-bold text-[#704214] mb-3 sm:mb-4" style={{fontFamily: 'Montserrat, sans-serif'}}>Best meals for you</h2>
+          <div className="w-16 h-1 bg-gradient-to-r from-[#f4c496] to-[#FFD166] rounded-full mx-auto"></div>
         </div>
 
         {loading ? (
@@ -107,31 +109,31 @@ const Home = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
               {featuredItems.map((item, index) => (
                 <div 
                   key={item.id} 
                   className="group animate-fade-in-up"
                   style={{animationDelay: `${index * 150}ms`}}
                 >
-                  <div className="relative pt-16 sm:pt-28 transform transition-all duration-300 hover:-translate-y-2">
+                  <div className="relative pt-10 sm:pt-16 md:pt-20 transform transition-all duration-300 hover:-translate-y-1">
                     {/* Food Image - perfectly circular */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                      <div className="w-full h-full rounded-full overflow-hidden shadow-lg border-4 border-orange-200">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 z-10 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-2">
+                      <div className="w-full h-full rounded-full overflow-hidden shadow-xl border-2 border-[#FFD166] ring-4 ring-[#FFFDF1]">
                         <OptimizedImage
                             src={item.image_url}
                             alt={item.name}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 p-2 rounded-full"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                       </div>
                     </div>
                     {/* Card background */}
-                    <div style={{backgroundColor: '#ffce99'}} className="rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] pt-16 sm:pt-24 md:pt-36 pb-6 sm:pb-8 md:pb-10 px-4 sm:px-6 md:px-10 min-h-[300px] sm:min-h-[350px] md:min-h-[420px] transition-all duration-300 hover:shadow-2xl flex flex-col">
-                      <div className="mb-4 sm:mb-6">
-                        <div className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3" style={{fontFamily: 'Montserrat, sans-serif'}}>
+                    <div style={{backgroundColor: '#ffce99', border: '1.5px solid #f0b966'}} className="rounded-3xl sm:rounded-4xl md:rounded-3xl pt-10 sm:pt-14 md:pt-16 pb-8 sm:pb-10 md:pb-12 px-6 sm:px-8 md:px-10 min-h-[220px] sm:min-h-[260px] md:min-h-[300px] transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 flex flex-col items-center justify-center text-center">
+                      <div className="mb-4 sm:mb-6 w-full">
+                        <div className="text-lg sm:text-xl font-bold text-[#704214] mb-4 sm:mb-5" style={{fontFamily: 'Montserrat, sans-serif'}}>
                           {item.name}
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-800 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-[#704214] leading-relaxed mx-auto font-medium">
                           {item.description || 'Delicious Filipino dish'}
                         </p>
                       </div>
@@ -144,7 +146,7 @@ const Home = () => {
             <div className="text-center">
               <button
                 onClick={handleViewMoreClick}
-                className="text-xl font-semibold text-gray-900 hover:text-amber-900 transition-colors"
+                className="text-base font-semibold text-gray-900 hover:text-amber-900 transition-colors"
                 style={{fontFamily: 'Montserrat, sans-serif'}}
               >
                 View More
@@ -155,35 +157,38 @@ const Home = () => {
       </div>
 
       {/* Features Section */}
-      <div className="py-20" style={{backgroundColor: '#FFFDF1'}}>
+      <div className="py-16 sm:py-20 md:py-24" style={{backgroundColor: '#FFFDF1'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="sr-only">Why Choose Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-4xl">🍕</span>
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-xl sm:text-xl md:text-xl font-bold text-[#704214] mb-3 sm:mb-4" style={{fontFamily: 'Montserrat, sans-serif'}}>Why Choose Us</h2>
+            <div className="w-16 h-1 bg-gradient-to-r from-[#f4c496] to-[#FFD166] rounded-full mx-auto"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
+            <div className="text-center p-8 sm:p-10 rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-white shadow-md">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <UtensilsCrossed className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-3 text-gray-900">Wide Selection</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 text-[#704214]" style={{fontFamily: 'Montserrat, sans-serif'}}>Wide Selection</h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 Choose from a variety of delicious dishes prepared by expert chefs
               </p>
             </div>
-            <div className="text-center p-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-4xl">⚡</span>
+            <div className="text-center p-8 sm:p-10 rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-white shadow-md">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Truck className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-3 text-gray-900">Fast Delivery</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 text-[#704214]" style={{fontFamily: 'Montserrat, sans-serif'}}>Fast Delivery</h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 Get your food delivered hot and fresh in no time
               </p>
             </div>
-            <div className="text-center p-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-4xl">💳</span>
+            <div className="text-center p-8 sm:p-10 rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-white shadow-md">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-3 text-gray-900">Easy Payment</h3>
-              <p className="text-gray-600">
-                Multiple payment options for your convenience
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 text-[#704214]" style={{fontFamily: 'Montserrat, sans-serif'}}>Secure Payment</h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                Fast and secure checkout with reliable payment processing
               </p>
             </div>
           </div>

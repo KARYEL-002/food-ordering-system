@@ -109,6 +109,12 @@ const CheckoutPage = () => {
       return 'Please enter a valid time';
     }
     
+    // Operating hours validation: 8:00 AM to 9:00 PM (08:00 to 21:00)
+    const [hours, minutes] = time.split(':').map(Number);
+    if (hours < 8 || hours > 21 || (hours === 21 && minutes > 0)) {
+      return 'We are available from 8:00 AM to 9:00 PM only';
+    }
+    
     // Check if time is in the past for today's date
     const today = new Date();
     const selectedDate = new Date(date);
@@ -118,7 +124,6 @@ const CheckoutPage = () => {
     // If selected date is today, check if time is in the past
     if (selectedDate.getTime() === today.getTime()) {
       const now = new Date();
-      const [hours, minutes] = time.split(':').map(Number);
       const selectedTime = new Date();
       selectedTime.setHours(hours, minutes, 0, 0);
       
@@ -388,7 +393,7 @@ const CheckoutPage = () => {
 
   return (
     <>
-      {/* QR Code Preview Modal */}
+      {/* QR Code Predal */}
       {showQRPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full text-center" style={{fontFamily: 'Montserrat, sans-serif'}}>
@@ -522,13 +527,13 @@ const CheckoutPage = () => {
         {/* Left Column - Form Fields and Payment */}
         <div className="space-y-4">
           {/* Customer Information */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-4 sm:p-6 border-2" style={{borderColor: '#E8DCC8'}}>
-            <h2 className="text-sm sm:text-base font-bold mb-4" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 border" style={{borderColor: '#F5E6D4'}}>
+            <h2 className="text-base sm:text-lg font-bold mb-4" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
               Your Information
             </h2>
 
             {/* Name */}
-            <div className="mb-4">
+              <div className="mb-4">
               <label className="block text-xs font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
                 Full Name <span style={{color: '#dc2626'}}>*</span>
               </label>
@@ -538,12 +543,13 @@ const CheckoutPage = () => {
                 value={formData.customerName}
                 onChange={handleInputChange}
                 placeholder="Enter your name"
-                className={`w-full px-3 py-2 rounded-lg border-2 text-xs sm:text-sm transition-colors ${
-                  errors.customerName ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
-                }`}
+                className="w-full rounded-xl border-2 text-sm pl-3 pr-3 h-10 transition-colors"
                 style={{
                   borderColor: errors.customerName ? '#dc2626' : '#D4C5B0',
-                  backgroundColor: errors.customerName ? '#fee2e2' : '#FFFDF1'
+                  backgroundColor: errors.customerName ? '#fee2e2' : '#FFFFFF',
+                  color: '#704214',
+                  boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.03)',
+                  fontFamily: 'Montserrat, sans-serif'
                 }}
               />
               {errors.customerName && (
@@ -562,10 +568,13 @@ const CheckoutPage = () => {
                 value={formData.customerPhone}
                 onChange={handleInputChange}
                 placeholder="09XXXXXXXXX"
-                className={`w-full px-3 py-2 rounded-lg border-2 text-xs sm:text-sm transition-colors`}
+                className="w-full rounded-xl border-2 text-sm pl-3 pr-3 h-10 transition-colors"
                 style={{
                   borderColor: errors.customerPhone ? '#dc2626' : '#D4C5B0',
-                  backgroundColor: errors.customerPhone ? '#fee2e2' : '#FFFDF1'
+                  backgroundColor: errors.customerPhone ? '#fee2e2' : '#FFFFFF',
+                  color: '#704214',
+                  boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.03)',
+                  fontFamily: 'Montserrat, sans-serif'
                 }}
               />
               {errors.customerPhone && (
@@ -576,53 +585,63 @@ const CheckoutPage = () => {
             {/* Date & Time - Only for Dine In and Pickup */}
             {deliveryType !== 'delivery' && (
               <>
-                <label className="block text-xs sm:text-sm font-semibold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                <label className="block text-sm sm:text-base font-bold mb-4" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
                   Choose your preferred time and date of dining in
                 </label>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
-                  <div>
-                    <label className="block text-xs font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
-                      Date <span style={{color: '#dc2626'}}>*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="orderDate"
-                      value={formData.orderDate}
-                      min={new Date().toISOString().split('T')[0]}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
-                      style={{
-                        borderColor: errors.orderDate ? '#dc2626' : '#704214',
-                        backgroundColor: errors.orderDate ? '#fee2e2' : '#FFFDF1',
-                        color: '#704214',
-                        fontFamily: 'Montserrat, sans-serif'
-                      }}
-                    />
-                    {errors.orderDate && (
-                      <p className="text-xs text-red-600 mt-1 font-semibold">{errors.orderDate}</p>
-                    )}
+                <div className="bg-white rounded-2xl p-5 border-2 mb-4" style={{borderColor: '#E8DCC8'}}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold mb-3" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                        Date <span style={{color: '#dc2626'}}>*</span>
+                      </label>
+                      <input
+                        type="date"
+                        name="orderDate"
+                        value={formData.orderDate}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border-2 text-sm transition-colors pl-3 pr-3 h-11"
+                        style={{
+                          borderColor: errors.orderDate ? '#dc2626' : '#D4C5B0',
+                          backgroundColor: errors.orderDate ? '#fee2e2' : '#FFFFFF',
+                          color: '#704214',
+                          boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.03)',
+                          fontFamily: 'Montserrat, sans-serif'
+                        }}
+                      />
+                      {errors.orderDate && (
+                        <p className="text-xs text-red-600 mt-2 font-semibold">{errors.orderDate}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold mb-3" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+                        Time <span style={{color: '#dc2626'}}>*</span>
+                      </label>
+                      <input
+                        type="time"
+                        name="orderTime"
+                        value={formData.orderTime}
+                        min="08:00"
+                        max="21:00"
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border-2 text-sm transition-colors pl-3 pr-3 h-11"
+                        style={{
+                          borderColor: errors.orderTime ? '#dc2626' : '#D4C5B0',
+                          backgroundColor: errors.orderTime ? '#fee2e2' : '#FFFFFF',
+                          color: '#704214',
+                          boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.03)',
+                          fontFamily: 'Montserrat, sans-serif'
+                        }}
+                      />
+                      {errors.orderTime && (
+                        <p className="text-xs text-red-600 mt-2 font-semibold">{errors.orderTime}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
-                      Time <span style={{color: '#dc2626'}}>*</span>
-                    </label>
-                    <input
-                      type="time"
-                      name="orderTime"
-                      value={formData.orderTime}
-                      min={getMinTimeForDate(formData.orderDate)}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors"
-                      style={{
-                        borderColor: errors.orderTime ? '#dc2626' : '#704214',
-                        backgroundColor: errors.orderTime ? '#fee2e2' : '#FFFDF1',
-                        color: '#704214',
-                        fontFamily: 'Montserrat, sans-serif'
-                      }}
-                    />
-                    {errors.orderTime && (
-                      <p className="text-xs text-red-600 mt-1 font-semibold">{errors.orderTime}</p>
-                    )}
+                  <div className="mt-3 p-3 rounded-lg" style={{backgroundColor: '#FFF7EA', borderLeft: '4px solid #FFD166'}}>
+                    <p className="text-xs text-gray-700 font-semibold" style={{color: '#704214'}}>
+                      ⏰ Operating hours: 8:00 AM - 9:00 PM
+                    </p>
                   </div>
                 </div>
               </>
@@ -696,9 +715,9 @@ const CheckoutPage = () => {
           )}
 
           {/* Payment Method Section */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-4 sm:p-6 border-2 transition-colors" style={{
-            borderColor: errors.paymentMethod ? '#dc2626' : '#E8DCC8',
-            backgroundColor: errors.paymentMethod ? '#fee2e2' : '#FFFDF1'
+          <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border transition-colors" style={{
+            borderColor: errors.paymentMethod ? '#dc2626' : '#F5E6D4',
+            backgroundColor: errors.paymentMethod ? '#fff6f6' : '#FFFFFF'
           }}>
             <h2 className="text-sm sm:text-base font-bold mb-2" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
               Payment Method <span style={{color: '#dc2626'}}>*</span>
@@ -711,26 +730,28 @@ const CheckoutPage = () => {
               {/* Cash Option */}
               <button
                 onClick={() => setPaymentMethod(paymentMethod === 'cash' ? null : 'cash')}
-                className="w-full transition-all rounded-xl sm:rounded-2xl border-2 duration-300"
+                className="w-full transition-all rounded-2xl duration-300 flex items-center justify-center"
                 style={{
                   borderColor: errors.paymentMethod ? '#dc2626' : '#704214',
                   backgroundColor: paymentMethod === 'cash' ? '#F5EBE0' : '#FFFDF1',
                   color: '#704214',
                   fontFamily: 'Montserrat, sans-serif',
-                  padding: '12px 16px',
-                  minHeight: paymentMethod === 'cash' ? '80px' : '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'column'
+                  padding: '14px 18px',
+                  minHeight: '56px',
+                  boxShadow: paymentMethod === 'cash' ? '0 8px 24px rgba(112,66,20,0.12)' : 'none'
                 }}
               >
-                <span className="font-semibold text-sm sm:text-base">Cash</span>
-                {paymentMethod === 'cash' && (
-                  <span className="text-xs mt-2 payment-message" style={{color: '#704214'}}>
-                    {getCashMessage()}
-                  </span>
-                )}
+                <div className="flex-1 text-left">
+                  <span className="font-semibold text-sm sm:text-base">Cash</span>
+                  {paymentMethod === 'cash' && (
+                    <div className="text-xs mt-2 payment-message" style={{color: '#704214'}}>
+                      {getCashMessage()}
+                    </div>
+                  )}
+                </div>
+                <div className="ml-4">
+                  {paymentMethod === 'cash' ? <span className="inline-block w-5 h-5 rounded-full bg-[#704214]"></span> : <span className="inline-block w-5 h-5 rounded-full border" style={{borderColor: '#D4C5B0'}}></span>}
+                </div>
               </button>
 
               {/* Online Payment Option */}
@@ -739,26 +760,28 @@ const CheckoutPage = () => {
                   setPaymentMethod(paymentMethod === 'gcash' ? null : 'gcash');
                   setGcashReference('');
                 }}
-                className="w-full transition-all rounded-xl sm:rounded-2xl border-2 duration-300"
+                className="w-full transition-all rounded-2xl duration-300 flex items-center justify-center"
                 style={{
                   borderColor: errors.paymentMethod ? '#dc2626' : '#704214',
                   backgroundColor: paymentMethod === 'gcash' ? '#F5EBE0' : '#FFFDF1',
                   color: '#704214',
                   fontFamily: 'Montserrat, sans-serif',
-                  padding: '12px 16px',
-                  minHeight: paymentMethod === 'gcash' ? 'auto' : '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'column'
+                  padding: '14px 18px',
+                  minHeight: '56px',
+                  boxShadow: paymentMethod === 'gcash' ? '0 8px 24px rgba(112,66,20,0.12)' : 'none'
                 }}
               >
-                <span className="font-semibold text-sm sm:text-base">Online Payment</span>
-                {paymentMethod === 'gcash' && (
-                  <span className="text-xs mt-2 payment-message" style={{color: '#704214'}}>
-                    Scan QR and send reference number
-                  </span>
-                )}
+                <div className="flex-1 text-left">
+                  <span className="font-semibold text-sm sm:text-base">Online Payment</span>
+                  {paymentMethod === 'gcash' && (
+                    <div className="text-xs mt-2 payment-message" style={{color: '#704214'}}>
+                      Scan QR and send reference number
+                    </div>
+                  )}
+                </div>
+                <div className="ml-4">
+                  {paymentMethod === 'gcash' ? <span className="inline-block w-5 h-5 rounded-full bg-[#704214]"></span> : <span className="inline-block w-5 h-5 rounded-full border" style={{borderColor: '#D4C5B0'}}></span>}
+                </div>
               </button>
             </div>
 
@@ -774,14 +797,14 @@ const CheckoutPage = () => {
                     GCash Payment QR
                   </h3>
                   <div className="flex justify-center mb-3">
-                    <div className="bg-white p-3 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowQRPreview(true)}>
-                      <img 
-                        ref={qrRef}
-                        src="/images/instapay.jpg" 
-                        alt="GCash QR Code"
-                        className="w-40 h-40 object-contain"
-                      />
-                    </div>
+                      <div className="bg-white p-3 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowQRPreview(true)}>
+                        <img 
+                          ref={qrRef}
+                          src="/images/instapay.jpg" 
+                          alt="GCash QR Code"
+                          className="w-40 h-40 object-contain"
+                        />
+                      </div>
                   </div>
                   <div className="flex gap-2 justify-center mb-3">
                     <button
@@ -836,12 +859,13 @@ const CheckoutPage = () => {
                       if (digits) setGcashReference(prev => (prev + digits).slice(0, 13));
                     }}
                     placeholder="Enter GCash transaction reference (numbers only, max 13 digits)"
-                    className={`w-full px-3 py-2 rounded-lg border-2 text-xs sm:text-sm transition-colors ${
-                      errors.gcashReference ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
-                    }`}
+                    className={`w-full rounded-xl border-2 text-sm pl-3 pr-3 h-10 transition-colors`}
                     style={{
                       borderColor: errors.gcashReference ? '#dc2626' : '#D4C5B0',
-                      backgroundColor: errors.gcashReference ? '#fee2e2' : '#FFFDF1'
+                      backgroundColor: errors.gcashReference ? '#fee2e2' : '#FFFFFF',
+                      color: '#704214',
+                      boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.03)',
+                      fontFamily: 'Montserrat, sans-serif'
                     }}
                   />
                   {errors.gcashReference && (
@@ -878,8 +902,8 @@ const CheckoutPage = () => {
 
         {/* Order Summary Section */}
         <div>
-          <div className="bg-orange-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2" style={{borderColor: '#E8DCC8'}}>
-            <h3 className="text-sm sm:text-base font-bold mb-3" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border" style={{borderColor: '#F5E6D4'}}>
+            <h3 className="text-base sm:text-lg font-bold mb-3" style={{color: '#704214', fontFamily: 'Montserrat, sans-serif'}}>
               Order Summary
             </h3>
 

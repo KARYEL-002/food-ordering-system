@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
 import AdminTopBar from '../../components/AdminTopBar';
-import { Edit2, Search } from 'lucide-react';
+import { Edit2, Search, Eye } from 'lucide-react';
 import api from '../../utils/api';
 import EditPaymentModal from '../../components/modals/EditPaymentModal';
 import PaymentPreviewModal from '../../components/modals/PaymentPreviewModal';
@@ -9,7 +9,7 @@ import Pagination from '../../components/Pagination';
 
 const StatCard = ({ title, value, bgColor = '#FFFDF1' }) => (
   <div
-    className="px-8 py-8 rounded-lg border-2 flex flex-col justify-center"
+    className="px-8 py-8 rounded-lg border-2 flex flex-col justify-center shadow-md transform transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
     style={{ backgroundColor: bgColor, borderColor: '#704214' }}
   >
     <p style={{ color: '#704214' }} className="font-bold text-sm uppercase tracking-wider">
@@ -246,7 +246,7 @@ const PaymentsManagement = () => {
                 </p>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border-2" style={{ borderColor: '#704214' }}>
+              <div className="bg-white rounded-lg border-2 shadow-md transform transition-all duration-200 hover:shadow-lg" style={{ borderColor: '#704214' }}>
                 <table className="w-full">
                   <thead>
                     <tr style={{ backgroundColor: '#FFFDF1', borderBottom: '2px solid #704214' }}>
@@ -321,14 +321,26 @@ const PaymentsManagement = () => {
                           </span>
                         </td>
                         <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => handleEdit(order)}
-                            className="px-3 py-1.5 rounded-lg font-bold text-white transition-opacity hover:opacity-80 flex items-center gap-1 text-sm btn-hover scale-transition"
-                            style={{ backgroundColor: '#00BCD4' }}
-                          >
-                            <Edit2 size={16} />
-                            Edit
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEdit(order)}
+                              className="px-3 py-1.5 rounded-lg font-bold text-white transition-transform transform hover:-translate-y-0.5 hover:scale-105 hover:opacity-90 flex items-center gap-1 text-sm btn-hover scale-transition shadow-sm"
+                              style={{ backgroundColor: '#00BCD4' }}
+                            >
+                              <Edit2 size={16} />
+                              Edit
+                            </button>
+
+                            <button
+                              onClick={() => setPreviewingPayment(order)}
+                              className="px-3 py-1.5 rounded-lg font-bold transition-opacity hover:opacity-80 flex items-center gap-1 text-sm btn-hover scale-transition"
+                              style={{ backgroundColor: '#FFD166', color: '#704214' }}
+                              title="Preview"
+                            >
+                              <Eye size={16} />
+                              Preview
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
