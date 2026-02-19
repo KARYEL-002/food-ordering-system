@@ -42,7 +42,7 @@ function AppContent() {
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
-    <div className={isAdminRoute ? 'min-h-screen' : 'min-h-screen bg-gray-50'}>
+    <div className={isAdminRoute ? 'min-h-screen' : 'min-h-screen'} style={isAdminRoute ? undefined : { backgroundColor: '#FFFDF1' }}>
       {!isAdminRoute && <Navbar />}
       <main>
       <Routes>

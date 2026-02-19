@@ -19,9 +19,11 @@ const AdminSidebar = ({ onClose = () => {} }) => {
     <div className="w-full sm:w-48 md:w-56 flex flex-col h-screen" style={{ backgroundColor: '#FFD9B3' }}>
       {/* Logo */}
       <div className="p-4 sm:p-6 flex justify-center">
-        <div className="border-4 border-[#FFD9B3] bg-white rounded-full w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg">
-          <img src="/images/logo.png" alt="Food Hub" className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover" />
-        </div>
+        <Link to="/" onClick={onClose} className="inline-block">
+          <div className="border-4 border-[#FFD9B3] bg-white rounded-full w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg">
+            <img src="/images/logo.png" alt="Food Hub" className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover" />
+          </div>
+        </Link>
       </div>
 
       {/* Menu Items */}

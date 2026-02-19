@@ -181,7 +181,7 @@ const OrdersManagement = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center p-4 sm:p-6 rounded-lg border-2 overflow-x-auto" style={{ borderColor: '#7C3AED', backgroundColor: 'white' }}>
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center p-4 sm:p-6 rounded-lg border-2 overflow-x-auto" style={{ borderColor: '#704214', backgroundColor: 'white' }}>
               <div className="flex gap-2 sm:gap-3 flex-wrap">
                 {['all', 'today', 'week', 'month'].map((type) => (
                   <button

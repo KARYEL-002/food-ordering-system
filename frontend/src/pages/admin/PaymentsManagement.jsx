@@ -184,7 +184,7 @@ const PaymentsManagement = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="mb-8 flex gap-4 items-center p-6 rounded-lg border-2 flex-wrap" style={{ borderColor: '#7C3AED', backgroundColor: 'white' }}>
+            <div className="mb-8 flex gap-4 items-center p-6 rounded-lg border-2 flex-wrap" style={{ borderColor: '#704214', backgroundColor: 'white' }}>
               <div className="flex gap-3">
                 {['all', 'today', 'week', 'month'].map((type) => (
                   <button
@@ -203,7 +203,7 @@ const PaymentsManagement = () => {
               </div>
 
               {/* Search Bar */}
-              <div className="flex-1 relative border-2 rounded-lg ml-4" style={{ borderColor: '#7C3AED' }}>
+              <div className="flex-1 relative border-2 rounded-lg ml-4" style={{ borderColor: '#704214' }}>
                 <input
                   type="text"
                   placeholder="Search payments..."
@@ -215,7 +215,7 @@ const PaymentsManagement = () => {
                 <Search
                   className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   size={18}
-                  style={{ color: '#7C3AED' }}
+                  style={{ color: '#704214' }}
                 />
               </div>
             </div>

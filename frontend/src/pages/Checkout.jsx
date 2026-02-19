@@ -45,8 +45,8 @@ const CheckoutPage = () => {
   // Delivery service tiers
   const deliveryServices = [
     { id: 'saver', label: 'Saver', fee: 50, time: '1 hour' },
-    { id: 'standard', label: 'Standard', fee: 100, time: '30-45 min' },
-    { id: 'priority', label: 'Priority', fee: 150, time: '5-15 min' }
+    { id: 'standard', label: 'Standard', fee: 100, time: '45-60 min' },
+    { id: 'priority', label: 'Priority', fee: 150, time: '20-30 min' }
   ];
 
 
@@ -227,7 +227,7 @@ const CheckoutPage = () => {
 
   if (!deliveryType || !items) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={{backgroundColor: '#FFFDF1', minHeight: '80vh'}}>
+      <div className="w-full min-h-screen" style={{ backgroundColor: '#FFFDF1' }}>
         <p className="text-center text-gray-500 text-xl">Invalid checkout session</p>
       </div>
     );

@@ -74,7 +74,7 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="flex h-screen flex-col lg:flex-row" style={{ backgroundColor: '#FFF5E6' }}>
+    <div className="flex h-screen flex-col lg:flex-row" style={{ backgroundColor: '#FFFFFF' }}>
       {/* Sidebar - Hidden on mobile, visible on desktop */}
       <div className="hidden lg:block w-full lg:w-56">
         <AdminSidebar />
